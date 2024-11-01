@@ -39,8 +39,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Aldeebhasan\\LaSubscription\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Aldeebhasan\\LaSubscription\\Tests\\": "tests/"
         }
     },
     "scripts": {

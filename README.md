@@ -1,8 +1,8 @@
 # this package will take your hand in your project to handle users subscription 
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/aldeebhasan/la-subscription.svg?style=flat-square)](https://packagist.org/packages/aldeebhasan/la-subscription)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/fix-php-code-style-issues.yml?branch=master&label=code%20style&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/aldeebhasan/la-subscription.svg?style=flat-square)](https://packagist.org/packages/aldeebhasan/la-subscription)
 
 This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
