@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @see \Aldeebhasan\LaSubscription\LaSubscription
  */
-class LaSubssription extends Facade
+class LaSubscription extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
