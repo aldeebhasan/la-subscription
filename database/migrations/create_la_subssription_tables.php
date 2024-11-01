@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         $prefix = config('subscription.prefix');
@@ -87,6 +88,13 @@ return new class extends Migration {
 
     public function down(): void
     {
-
+        $prefix = config('subscription.prefix');
+        Schema::dropIfExists("{$prefix}_subscription_item_transactions");
+        Schema::dropIfExists("{$prefix}_subscription_items");
+        Schema::dropIfExists("{$prefix}_subscriptions");
+        Schema::dropIfExists("{$prefix}_product_feature");
+        Schema::dropIfExists("{$prefix}_features");
+        Schema::dropIfExists("{$prefix}_products");
+        Schema::dropIfExists("{$prefix}_groups");
     }
 };
