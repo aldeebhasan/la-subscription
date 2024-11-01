@@ -6,21 +6,18 @@ use Illuminate\Support\ServiceProvider;
 
 class LaSubscriptionServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../config/subscription.php' => config_path('subscription.php'),
+            __DIR__ . '/../config/subscription.php' => config_path('subscription.php'),
         ], 'la-subscription');
-
     }
 
-    public function register()
+    public function register(): void
     {
-
         $this->mergeConfigFrom(
-            __DIR__.'/../config/subscription.php',
+            __DIR__ . '/../config/subscription.php',
             'la-subscription'
         );
-
     }
 }

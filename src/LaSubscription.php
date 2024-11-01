@@ -2,4 +2,6 @@
 
 namespace Aldeebhasan\LaSubscription;
 
-class LaSubssription {}
+class LaSubscription
+{
+}

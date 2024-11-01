@@ -21,6 +21,9 @@ jobs:
 
       - name: Fix PHP code style issues
         uses: aglipanci/laravel-pint-action@2.4
+        with:
+          configPath: "pint.json"
+          onlyDirty: true
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
