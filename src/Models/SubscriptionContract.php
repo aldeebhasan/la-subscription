@@ -3,11 +3,13 @@
 namespace Aldeebhasan\LaSubscription\Models;
 
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
-use Illuminate\Database\Eloquent\Model;
+use Aldeebhasan\LaSubscription\Observers\SubscriptionContractObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class SubscriptionItem extends Model
+#[ObservedBy(SubscriptionContractObserver::class)]
+class SubscriptionContract extends LaModel
 {
     protected $fillable = ['subscription_id', 'code', 'number', 'product_type', 'product_id', 'start_at', 'end_at', 'type'];
     protected $casts = [
@@ -16,14 +18,6 @@ class SubscriptionItem extends Model
         'type' => BillingCycleEnum::class,
     ];
 
-    public function getTable(): string
-    {
-        $prefix = config('subscription.prefix');
-        $table = parent::getTable();
-
-        return "{$prefix}_{$table}";
-    }
-
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
@@ -31,6 +25,6 @@ class SubscriptionItem extends Model
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(SubscriptionItemTransaction::class);
+        return $this->hasMany(SubscriptionContractTransaction::class);
     }
 }

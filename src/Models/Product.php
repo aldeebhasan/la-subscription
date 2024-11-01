@@ -2,26 +2,18 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Product extends Model
+class Product extends LaModel implements ContractUI
 {
     protected $fillable = ['name', 'code', 'description', 'group_id', 'active', 'type', 'price', 'price_yearly'];
     protected $casts = [
         'active' => 'bool',
         'type' => BillingCycleEnum::class,
     ];
-
-    public function getTable(): string
-    {
-        $prefix = config('subscription.prefix');
-        $table = parent::getTable();
-
-        return "{$prefix}_{$table}";
-    }
 
     public function group(): BelongsTo
     {
@@ -40,5 +32,20 @@ class Product extends Model
             "product_id",
             "feature_id",
         )->withPivot('value', 'active');
+    }
+
+    public function getId(): int|string
+    {
+        return $this->getKey();
+    }
+
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    public function isRecurring(): bool
+    {
+        return $this->type === BillingCycleEnum::RECURRING;
     }
 }

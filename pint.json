@@ -8,7 +8,9 @@
         "blank_line_after_namespace": true,
         "blank_line_after_opening_tag": true,
         "braces": {
-            "allow_single_line_closure": true
+            "allow_single_line_closure": true,
+            "position_after_functions_and_oop_constructs": "next",
+            "position_after_control_structures": "next"
         },
         "cast_spaces": false,
         "concat_space": {

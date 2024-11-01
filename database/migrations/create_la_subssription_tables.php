@@ -57,12 +57,11 @@ return new class extends Migration
             $table->morphs("owner");
             $table->timestamp("start_at")->nullable();
             $table->timestamp("end_at")->nullable();
-            $table->timestamp("trial_end_at")->nullable();
             $table->timestamp("billing_period")->default(1);
             $table->timestamps();
             $table->softDeletes();
         });
-        Schema::create("{$prefix}_subscription_items", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_subscription_contracts", function (Blueprint $table) use ($prefix) {
             $table->id();
             $table->foreign("subscription_id")->references('id')->on("{$prefix}_subscriptions");
             $table->string("code");
@@ -75,9 +74,10 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_subscription_item_transactions", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_subscription_contract_transactions", function (Blueprint $table) use ($prefix) {
             $table->id();
-            $table->foreign("subscription_item_id")->references('id')->on("{$prefix}_subscription_items");
+            $table->foreign("subscription_contract_id")->references('id')->on("{$prefix}_subscription_contracts");
+            $table->string("type");
             $table->timestamp("start_at");
             $table->timestamp("end_at")->nullable();
             $table->morphs("causative");
@@ -89,8 +89,8 @@ return new class extends Migration
     public function down(): void
     {
         $prefix = config('subscription.prefix');
-        Schema::dropIfExists("{$prefix}_subscription_item_transactions");
-        Schema::dropIfExists("{$prefix}_subscription_items");
+        Schema::dropIfExists("{$prefix}_subscription_contract_transactions");
+        Schema::dropIfExists("{$prefix}_subscription_contracts");
         Schema::dropIfExists("{$prefix}_subscriptions");
         Schema::dropIfExists("{$prefix}_product_feature");
         Schema::dropIfExists("{$prefix}_features");

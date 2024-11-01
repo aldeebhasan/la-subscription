@@ -2,17 +2,12 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Aldeebhasan\LaSubscription\Enums\GroupTypeEnum;
 
-class Group extends Model
+class Group extends LaModel
 {
     protected $fillable = ['name', 'type'];
-
-    public function getTable(): string
-    {
-        $prefix = config('subscription.prefix');
-        $table = parent::getTable();
-
-        return "{$prefix}_{$table}";
-    }
+    protected $casts = [
+        'type' => GroupTypeEnum::class,
+    ];
 }
