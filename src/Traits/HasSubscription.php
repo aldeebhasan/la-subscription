@@ -19,4 +19,12 @@ trait HasSubscription
         /* @var  Model $this */
         return $this->morphOne(Subscription::class, 'owner');
     }
+
+    //    public function can(string|array $code): bool
+    //    {
+    //        $subscription = $this->getSubscription();
+    //        $subscription->loadMissing(['contracts' => fn($q) => $q->valid(), 'contracts.product']);
+    //
+    //
+    //    }
 }

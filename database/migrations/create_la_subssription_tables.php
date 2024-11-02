@@ -16,12 +16,12 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
-        Schema::create("{$prefix}_products", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_products", function (Blueprint $table) {
             $table->id();
             $table->string("name");
             $table->string("code")->unique();
             $table->text("description");
-            $table->foreign("group_id")->references('id')->on("{$prefix}_groups");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class);
             $table->boolean('active')->default(true);
             $table->enum("type", ['recurring', 'non-recurring']);
             $table->double("price")->default(0);
@@ -30,40 +30,40 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_features", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_features", function (Blueprint $table) {
             $table->id();
             $table->string("name");
             $table->string("code")->unique();
             $table->text("description");
-            $table->foreign("group_id")->references('id')->on("{$prefix}_groups");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class);
             $table->boolean('active')->default(true);
             $table->boolean('limited')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_product_feature", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_product_feature", function (Blueprint $table) {
             $table->id();
-            $table->foreign("product_id")->references('id')->on("{$prefix}_products");
-            $table->foreign("feature_id")->references('id')->on("{$prefix}_features");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Product::class);
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Feature::class);
             $table->boolean('active')->default(true);
-            $table->double('value')->default(0);
+            $table->double('value')->unsigned()->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create("{$prefix}_subscriptions", function (Blueprint $table) {
             $table->id();
-            $table->morphs("owner");
+            $table->morphs("subscriber");
             $table->timestamp("start_at")->nullable();
             $table->timestamp("end_at")->nullable();
             $table->timestamp("billing_period")->default(1);
             $table->timestamps();
             $table->softDeletes();
         });
-        Schema::create("{$prefix}_subscription_contracts", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_subscription_contracts", function (Blueprint $table) {
             $table->id();
-            $table->foreign("subscription_id")->references('id')->on("{$prefix}_subscriptions");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Subscription::class);
             $table->string("code");
             $table->morphs("product");
             $table->integer("number")->default(1);
@@ -74,13 +74,26 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_subscription_contract_transactions", function (Blueprint $table) use ($prefix) {
+        Schema::create("{$prefix}_subscription_contract_transactions", function (Blueprint $table) {
             $table->id();
-            $table->foreign("subscription_contract_id")->references('id')->on("{$prefix}_subscription_contracts");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\SubscriptionContract::class);
             $table->string("type");
             $table->timestamp("start_at");
             $table->timestamp("end_at")->nullable();
             $table->morphs("causative");
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create("{$prefix}_subscription_consumptions", function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Subscription::class);
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Feature::class);
+            $table->string("code");
+            $table->timestamp("end_at")->nullable();
+            $table->boolean('limited')->default(false);
+            $table->double('quota')->unsigned()->default(0);
+            $table->double('consumed')->unsigned()->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
@@ -89,6 +102,7 @@ return new class extends Migration
     public function down(): void
     {
         $prefix = config('subscription.prefix');
+        Schema::dropIfExists("{$prefix}_subscription_consumptions");
         Schema::dropIfExists("{$prefix}_subscription_contract_transactions");
         Schema::dropIfExists("{$prefix}_subscription_contracts");
         Schema::dropIfExists("{$prefix}_subscriptions");

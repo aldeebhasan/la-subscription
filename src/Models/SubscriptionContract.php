@@ -5,9 +5,18 @@ namespace Aldeebhasan\LaSubscription\Models;
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
 use Aldeebhasan\LaSubscription\Observers\SubscriptionContractObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property string $start_at
+ * @property string $end_at
+ * @property Product $product
+ *
+ * @method Builder valid()
+ */
 #[ObservedBy(SubscriptionContractObserver::class)]
 class SubscriptionContract extends LaModel
 {
@@ -26,5 +35,18 @@ class SubscriptionContract extends LaModel
     public function transactions(): HasMany
     {
         return $this->hasMany(SubscriptionContractTransaction::class);
+    }
+
+    public function product(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function scopeValid(Builder $builder): Builder
+    {
+        return $builder->where(function (Builder $query) {
+            $query->whereNull('end_at')
+                ->orWhere('end_at', '>=', now());
+        });
     }
 }

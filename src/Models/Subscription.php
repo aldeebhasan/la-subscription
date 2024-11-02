@@ -8,19 +8,20 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @property Collection<SubscriptionContract> $contracts
+ * @property Collection<SubscriptionConsumption> $consumptions
  * @property string $start_at
  * @property string $end_at
  */
 class Subscription extends LaModel
 {
-    protected $fillable = ['owner_type', 'owner_id', 'start_at', 'end_at', 'billing_period'];
+    protected $fillable = ['subscriber_type', 'subscriber_id', 'start_at', 'end_at', 'billing_period'];
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'trial_end_at' => 'datetime',
     ];
 
-    public function owner(): MorphTo
+    public function subscriber(): MorphTo
     {
         return $this->morphTo();
     }
@@ -28,5 +29,10 @@ class Subscription extends LaModel
     public function contracts(): HasMany
     {
         return $this->hasMany(SubscriptionContract::class);
+    }
+
+    public function consumptions(): HasMany
+    {
+        return $this->hasMany(SubscriptionConsumption::class);
     }
 }

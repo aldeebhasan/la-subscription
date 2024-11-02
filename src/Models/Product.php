@@ -6,6 +6,7 @@ use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 
 class Product extends LaModel implements ContractUI
 {
@@ -34,11 +35,6 @@ class Product extends LaModel implements ContractUI
         )->withPivot('value', 'active');
     }
 
-    public function getId(): int|string
-    {
-        return $this->getKey();
-    }
-
     public function getCode(): string
     {
         return $this->code;
@@ -47,5 +43,12 @@ class Product extends LaModel implements ContractUI
     public function isRecurring(): bool
     {
         return $this->type === BillingCycleEnum::RECURRING;
+    }
+
+    public function getFeatures(): Collection
+    {
+        $this->loadMissing('features');
+
+        return $this->features;
     }
 }

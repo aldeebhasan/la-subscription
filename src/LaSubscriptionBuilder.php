@@ -55,7 +55,7 @@ class LaSubscriptionBuilder
 
     public function create(): Subscription
     {
-        $owner = $this->manager->getOwner();
+        $owner = $this->manager->getSubscriber();
 
         $subscription = $owner->getSubscription();
         if (!$subscription) {
@@ -71,14 +71,12 @@ class LaSubscriptionBuilder
         return $owner->getSubscription();
     }
 
-    public function update(Subscription $subscription): Subscription
+    private function update(Subscription $subscription): void
     {
         $subscription->update([
-            'start_at' => $this->getStartDate(),
+            //            'start_at' => $this->getStartDate(),
             'end_at' => $this->getEndDate(),
             'billing_period' => $this->getPeriod(),
         ]);
-
-        return $subscription;
     }
 }

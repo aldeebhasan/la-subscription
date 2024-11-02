@@ -35,7 +35,10 @@
         "psr-4": {
             "Aldeebhasan\\LaSubscription\\": "src/",
             "Aldeebhasan\\LaSubscription\\Database\\Factories\\": "database/factories/"
-        }
+        },
+        "file": [
+            "src/Helper/helper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

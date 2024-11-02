@@ -6,6 +6,10 @@ use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property string $start_at
+ * @property string $end_at
+ */
 class SubscriptionContractTransaction extends LaModel
 {
     protected $fillable = ['subscription_contract_id', 'type', 'start_at', 'end_at', 'causative_type', 'causative_id'];
