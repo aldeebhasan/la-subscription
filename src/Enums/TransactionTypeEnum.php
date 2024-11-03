@@ -6,5 +6,5 @@ enum TransactionTypeEnum: string
 {
     case NEW = "new";
     case RENEW = "renew";
-    case EXTEND = "extend";
+    case CANCEL = "cancel";
 }

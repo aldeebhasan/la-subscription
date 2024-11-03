@@ -7,6 +7,7 @@ use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
 use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
 use Aldeebhasan\LaSubscription\Exceptions\SubscriptionRequiredExp;
+use Aldeebhasan\LaSubscription\Exceptions\SwitchToSamePlanExp;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
@@ -50,10 +51,36 @@ class LaSubscription
         int $period = 1
     ): Subscription {
         $builder = new LaSubscriptionBuilder($this);
-        $this->subscription = $builder->setStartDate($startAt)
+        $this->subscription = $builder->setPlan($item)
+            ->setStartDate($startAt)
             ->setPeriod($period)
             ->create();
 
+        $this->install($item, $causative, $startAt, $period);
+
+        return $this->subscription;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function switchTo(
+        ContractUI $item,
+        Model $causative,
+        ?string $startAt = null,
+        ?int $period = null
+    ): Subscription {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
+        throw_if($this->subscription->plan_id === $item->getKey(), SwitchToSamePlanExp::class);
+
+        $oldSubscription = $this->subscription;
+        $builder = new LaSubscriptionBuilder($this);
+        $this->subscription = $builder->setPlan($item)
+            ->setStartDate($startAt ?? $this->subscription->start_at)
+            ->setPeriod($period ?? $this->subscription->billing_period)
+            ->create();
+
+        $oldSubscription->suppress();
         $this->install($item, $causative, $startAt, $period);
 
         return $this->subscription;
@@ -70,14 +97,35 @@ class LaSubscription
     ): self {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        $item = $this->getContract($item, $startAt, $period);
-        $transaction = $this->logTransaction($item, $causative, $startAt, $period);
+        $contract = $this->getContract($item, $startAt, $period);
+        $transaction = $this->logTransaction($contract, $causative, $startAt, $period);
 
-        if ($item->end_at && Carbon::parse($item->end_at)->lt($transaction->end_at)) {
-            $item->update(['end_at' => $transaction->end_at]);
+        if ($contract->end_at && Carbon::parse($contract->end_at)->lt($transaction->end_at)) {
+            $contract->update(['end_at' => $transaction->end_at]);
         }
         if ($this->subscription->end_at && Carbon::parse($this->subscription->end_at)->lt($transaction->end_at)) {
             $this->subscription->update(['end_at' => $transaction->end_at]);
+        }
+
+        $this->sync();
+
+        return $this;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function cancel(
+        ContractUI $item,
+        Model $causative,
+        bool $force = false
+    ): self {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
+
+        $contract = $this->getContract($item);
+        $this->logTransaction($contract, $causative, now()->toDateTimeString(), 0, TransactionTypeEnum::CANCEL);
+        if ($force) {
+            $contract->update(['end_at' => now()->toDateTimeString()]);
         }
 
         $this->sync();
@@ -112,12 +160,13 @@ class LaSubscription
         Model $causative,
         ?string $startAt = null,
         ?int $period = null,
+        ?TransactionTypeEnum $type = null,
     ): SubscriptionContractTransaction {
         [$startAt, $endAt] = $this->getDateRange($startAt, $period);
 
         /* @var SubscriptionContractTransaction */
         return $contract->transactions()->create([
-            'type' => $contract->transactions()->exists() ? TransactionTypeEnum::RENEW : TransactionTypeEnum::NEW,
+            'type' => $type ?: ($contract->transactions()->exists() ? TransactionTypeEnum::RENEW : TransactionTypeEnum::NEW),
             'start_at' => $startAt,
             'end_at' => $contract->type === BillingCycleEnum::NON_RECURRING ? null : $endAt,
             'causative_type' => get_class($causative),
@@ -140,7 +189,7 @@ class LaSubscription
 
     private function sync(): void
     {
-        $this->subscription->consumptions()->forceDelete();
+        $this->subscription->quotas()->forceDelete();
 
         $this->subscription->contracts()->valid()
             ->get()->each(function (SubscriptionContract $contract) {
@@ -154,18 +203,26 @@ class LaSubscription
 
     private function syncFeature(Feature $feature, ?int $quota = null): void
     {
-        $old = $this->subscription->consumptions()->where('code', $feature->code)->first();
+        $old = $this->subscription->quotas()->where('code', $feature->code)->first();
         if (!$old) {
-            $this->subscription->consumptions()->create([
+            $consumed = $feature->isConsumable()
+                ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
+                    ->whereDate("created_at", '<=', $this->subscription->end_at)
+                    ->whereDate("created_at", '>=', Carbon::parse($this->subscription->end_at)->subMonths($this->subscription->billing_period)->toDateString())
+                    ->sum('consumed')
+                : 0;
+
+            $this->subscription->quotas()->create([
                 'code' => $feature->code,
-                'limited' => $feature->limited,
+                'limited' => $feature->isConsumable(),
                 'feature_id' => $feature->getKey(),
-                'quota' => $feature->limited ? $quota : 0,
+                'quota' => $feature->isConsumable() ? $quota : 0,
+                'consumed' => $consumed ?: 0,
                 'end_at' => $this->subscription->end_at,
             ]);
         } else {
             $old->update([
-                'quota' => $feature->limited ? ($old->quota + $quota) : 0,
+                'quota' => $feature->isConsumable() ? ($old->quota + $quota) : 0,
             ]);
         }
     }

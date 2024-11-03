@@ -4,20 +4,27 @@ namespace Aldeebhasan\LaSubscription\Traits;
 
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
+/** @property Subscription|null $subscription */
 trait HasSubscription
 {
     public function getSubscription(): ?Subscription
     {
-        /* @var Subscription|null */
-        return $this->subscription()->first();
+        return $this->subscription;
     }
 
-    public function subscription(): BelongsTo
+    public function subscription(): MorphOne
     {
         /* @var  Model $this */
-        return $this->morphOne(Subscription::class, 'owner');
+        return $this->morphOne(Subscription::class, 'subscriber')->ofMany("start_at", 'MAX');
+    }
+
+    public function subscriptions(): MorphMany
+    {
+        /* @var  Model $this */
+        return $this->morphMany(Subscription::class, 'subscriber');
     }
 
     //    public function can(string|array $code): bool

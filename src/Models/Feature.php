@@ -18,4 +18,9 @@ class Feature extends LaModel
             $group->setAttribute('name', 'Others');
         });
     }
+
+    public function isConsumable(): bool
+    {
+        return (bool)$this->limited;
+    }
 }

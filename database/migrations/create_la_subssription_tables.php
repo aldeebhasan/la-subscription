@@ -55,8 +55,11 @@ return new class extends Migration
         Schema::create("{$prefix}_subscriptions", function (Blueprint $table) {
             $table->id();
             $table->morphs("subscriber");
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Product::class, 'plan_id');
             $table->timestamp("start_at")->nullable();
             $table->timestamp("end_at")->nullable();
+            $table->timestamp("supersede_at")->nullable();
+            $table->timestamp("canceled_at")->nullable();
             $table->timestamp("billing_period")->default(1);
             $table->timestamps();
             $table->softDeletes();
@@ -85,7 +88,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_subscription_consumptions", function (Blueprint $table) {
+        Schema::create("{$prefix}_subscription_quotas", function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Subscription::class);
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Feature::class);
@@ -93,6 +96,15 @@ return new class extends Migration
             $table->timestamp("end_at")->nullable();
             $table->boolean('limited')->default(false);
             $table->double('quota')->unsigned()->default(0);
+            $table->double('consumed')->unsigned()->default(0);
+            $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create("{$prefix}_feature_consumptions", function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Subscription::class);
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Feature::class);
+            $table->string("code");
             $table->double('consumed')->unsigned()->default(0);
             $table->timestamps();
             $table->softDeletes();

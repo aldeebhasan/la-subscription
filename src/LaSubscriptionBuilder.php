@@ -2,17 +2,26 @@
 
 namespace Aldeebhasan\LaSubscription;
 
+use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Illuminate\Support\Carbon;
 
 class LaSubscriptionBuilder
 {
+    private ContractUI $plan;
     private string $startDate;
     private string $endDate;
     private int $period = 1;
 
     public function __construct(private readonly LaSubscription $manager)
     {
+    }
+
+    public function setPlan(ContractUI $plan): self
+    {
+        $this->plan = $plan;
+
+        return $this;
     }
 
     public function setStartDate(string $date): self
@@ -24,7 +33,7 @@ class LaSubscriptionBuilder
 
     public function getStartDate(): string
     {
-        return $this->startDate ?? now()->toDayDateTimeString();
+        return $this->startDate ?? now()->toDateTimeString();
     }
 
     public function setEndDate(string $date): self
@@ -57,26 +66,13 @@ class LaSubscriptionBuilder
     {
         $owner = $this->manager->getSubscriber();
 
-        $subscription = $owner->getSubscription();
-        if (!$subscription) {
-            $owner->subscription()->create([
-                'start_at' => $this->getStartDate(),
-                'end_at' => $this->getEndDate(),
-                'billing_period' => $this->getPeriod(),
-            ]);
-        } else {
-            $this->update($subscription);
-        }
-
-        return $owner->getSubscription();
-    }
-
-    private function update(Subscription $subscription): void
-    {
-        $subscription->update([
-            //            'start_at' => $this->getStartDate(),
+        $owner->subscriptions()->create([
+            'plan_id' => $this->plan->getKey(),
+            'start_at' => $this->getStartDate(),
             'end_at' => $this->getEndDate(),
             'billing_period' => $this->getPeriod(),
         ]);
+
+        return $owner->getSubscription();
     }
 }

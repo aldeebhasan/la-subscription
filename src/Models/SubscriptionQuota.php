@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $end_at
  * @property Feature $feature
  */
-class SubscriptionConsumption extends LaModel
+class SubscriptionQuota extends LaModel
 {
     protected $fillable = ['subscription_id', 'code', 'limited', 'feature_id', 'quota', 'consumed', 'end_at'];
     protected $casts = [
