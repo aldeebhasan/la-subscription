@@ -4,6 +4,7 @@ namespace Aldeebhasan\LaSubscription\Models;
 
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
 use Aldeebhasan\LaSubscription\Observers\SubscriptionContractObserver;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * @property string $start_at
- * @property string $end_at
+ * @property Carbon $start_at
+ * @property ?Carbon $end_at
  * @property Product $product
  *
  * @method Builder valid()
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 #[ObservedBy(SubscriptionContractObserver::class)]
 class SubscriptionContract extends LaModel
 {
-    protected $fillable = ['subscription_id', 'code', 'number', 'product_type', 'product_id', 'start_at', 'end_at', 'type'];
+    protected $fillable = ['subscription_id', 'code', 'number', 'product_type', 'product_id', 'start_at', 'end_at', 'type', 'auto_renew'];
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
@@ -48,5 +49,10 @@ class SubscriptionContract extends LaModel
             $query->whereNull('end_at')
                 ->orWhere('end_at', '>=', now());
         });
+    }
+
+    public function scopeActive(Builder $builder): Builder
+    {
+        return $builder->where('auto_renew', true);
     }
 }

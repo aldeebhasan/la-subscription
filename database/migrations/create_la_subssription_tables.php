@@ -72,6 +72,7 @@ return new class extends Migration
             $table->integer("number")->default(1);
             $table->timestamp("start_at");
             $table->timestamp("end_at")->nullable();
+            $table->boolean("auto_renew")->default(true);
             $table->enum("type", ['recurring', 'non-recurring']);
             $table->timestamps();
             $table->softDeletes();

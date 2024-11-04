@@ -1,19 +1,25 @@
 <?php
 
-namespace Aldeebhasan\LaSubscription;
+namespace Aldeebhasan\LaSubscription\Handler;
 
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
+use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Illuminate\Support\Carbon;
 
-class LaSubscriptionBuilder
+class SubscriptionBuilder
 {
     private ContractUI $plan;
     private string $startDate;
     private string $endDate;
     private int $period = 1;
 
-    public function __construct(private readonly LaSubscription $manager)
+    public static function make(SubscriberUI $subscriber): self
+    {
+        return new self($subscriber);
+    }
+
+    private function __construct(private readonly SubscriberUI $subscriber)
     {
     }
 
@@ -64,15 +70,13 @@ class LaSubscriptionBuilder
 
     public function create(): Subscription
     {
-        $owner = $this->manager->getSubscriber();
-
-        $owner->subscriptions()->create([
+        $this->subscriber->subscriptions()->create([
             'plan_id' => $this->plan->getKey(),
             'start_at' => $this->getStartDate(),
             'end_at' => $this->getEndDate(),
             'billing_period' => $this->getPeriod(),
         ]);
 
-        return $owner->getSubscription();
+        return $this->subscriber->getSubscription();
     }
 }

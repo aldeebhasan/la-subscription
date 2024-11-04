@@ -2,17 +2,21 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @property Collection<SubscriptionContract> $contracts
+ * @property Product $plan
+ * @property Model $subscriber
  * @property Collection<SubscriptionQuota> $quotas
  * @property Collection<FeatureConsumption> $consumptions
- * @property string $start_at
- * @property string $end_at
+ * @property Carbon $start_at
+ * @property ?Carbon $end_at
  */
 class Subscription extends LaModel
 {
@@ -49,11 +53,18 @@ class Subscription extends LaModel
         return $this->hasMany(FeatureConsumption::class);
     }
 
-    public function suppress(?string $suppressionDate = null): self
+    public function isCanceled(): bool
     {
-        $suppressionDate = $suppressionDate ?: now()->toDateTimeString();
-        $this->update(['suppressed_at' => $suppressionDate]);
+        return !is_null($this->canceled_at);
+    }
 
-        return $this;
+    public function isSupersede(): bool
+    {
+        return !is_null($this->supersede_at);
+    }
+
+    public function getBillingPeriod(): int
+    {
+        return $this->billing_period ?? 1;
     }
 }

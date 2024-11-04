@@ -40,4 +40,9 @@ class SubscriptionQuota extends LaModel
             });
         });
     }
+
+    public function canUse(): bool
+    {
+        return !$this->limited || ($this->consumed < $this->quota);
+    }
 }

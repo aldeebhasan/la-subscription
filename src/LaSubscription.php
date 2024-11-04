@@ -4,20 +4,24 @@ namespace Aldeebhasan\LaSubscription;
 
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
-use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
-use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
+use Aldeebhasan\LaSubscription\Events\SubscriptionCanceled;
+use Aldeebhasan\LaSubscription\Events\SubscriptionRenewd;
+use Aldeebhasan\LaSubscription\Events\SubscriptionStarted;
+use Aldeebhasan\LaSubscription\Events\SubscriptionSuppressed;
+use Aldeebhasan\LaSubscription\Events\SubscriptionSwitched;
 use Aldeebhasan\LaSubscription\Exceptions\SubscriptionRequiredExp;
 use Aldeebhasan\LaSubscription\Exceptions\SwitchToSamePlanExp;
-use Aldeebhasan\LaSubscription\Models\Feature;
+use Aldeebhasan\LaSubscription\Handler\ContractsHandler;
+use Aldeebhasan\LaSubscription\Handler\SubscriptionBuilder;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
-use Aldeebhasan\LaSubscription\Models\SubscriptionContractTransaction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class LaSubscription
 {
     private ?Subscription $subscription;
+    private ContractsHandler $contractsHandler;
 
     public static function make(SubscriberUI $subscriber): self
     {
@@ -27,87 +31,58 @@ class LaSubscription
     private function __construct(private readonly SubscriberUI $subscriber)
     {
         $this->subscription = $subscriber->getSubscription();
+        $this->contractsHandler = new ContractsHandler($this->subscription);
     }
 
-    public function refreshSubscription(): self
+    public function reload(): self
     {
         $this->subscription = $this->subscriber->getSubscription();
+        $this->contractsHandler = new ContractsHandler($this->subscription);
 
         return $this;
     }
 
-    public function getSubscriber(): SubscriberUI
+    public function getSubscription(): Subscription
     {
-        return $this->subscriber;
+        return $this->subscriber->getSubscription();
     }
 
     /**
      * @throws \Throwable
      */
-    public function subscribeTo(
-        ContractUI $item,
-        Model $causative,
-        ?string $startAt = null,
-        int $period = 1
-    ): Subscription {
-        $builder = new LaSubscriptionBuilder($this);
-        $this->subscription = $builder->setPlan($item)
+    public function subscribeTo(ContractUI $item, ?string $startAt = null, int $period = 1): self
+    {
+        $this->subscription = SubscriptionBuilder::make($this->subscriber)
+            ->setPlan($item)
             ->setStartDate($startAt)
             ->setPeriod($period)
             ->create();
 
-        $this->install($item, $causative, $startAt, $period);
+        $this->refresh();
 
-        return $this->subscription;
+        event(new SubscriptionStarted($this->subscription));
+
+        return $this;
     }
 
     /**
      * @throws \Throwable
      */
-    public function switchTo(
-        ContractUI $item,
-        Model $causative,
-        ?string $startAt = null,
-        ?int $period = null
-    ): Subscription {
+    public function switchTo(ContractUI $item, ?string $startAt = null, ?int $period = null): self
+    {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
         throw_if($this->subscription->plan_id === $item->getKey(), SwitchToSamePlanExp::class);
 
-        $oldSubscription = $this->subscription;
-        $builder = new LaSubscriptionBuilder($this);
-        $this->subscription = $builder->setPlan($item)
-            ->setStartDate($startAt ?? $this->subscription->start_at)
-            ->setPeriod($period ?? $this->subscription->billing_period)
+        $this->suppress();
+        $this->subscription = SubscriptionBuilder::make($this->subscriber)
+            ->setPlan($item)
+            ->setStartDate($startAt ?? $this->subscription->start_at->toDateTimeString())
+            ->setPeriod($period ?? $this->subscription->getBillingPeriod())
             ->create();
 
-        $oldSubscription->suppress();
-        $this->install($item, $causative, $startAt, $period);
+        $this->refresh();
 
-        return $this->subscription;
-    }
-
-    /**
-     * @throws \Throwable
-     */
-    public function install(
-        ContractUI $item,
-        Model $causative,
-        ?string $startAt = null,
-        ?int $period = null
-    ): self {
-        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
-
-        $contract = $this->getContract($item, $startAt, $period);
-        $transaction = $this->logTransaction($contract, $causative, $startAt, $period);
-
-        if ($contract->end_at && Carbon::parse($contract->end_at)->lt($transaction->end_at)) {
-            $contract->update(['end_at' => $transaction->end_at]);
-        }
-        if ($this->subscription->end_at && Carbon::parse($this->subscription->end_at)->lt($transaction->end_at)) {
-            $this->subscription->update(['end_at' => $transaction->end_at]);
-        }
-
-        $this->sync();
+        event(new SubscriptionSwitched($this->subscription));
 
         return $this;
     }
@@ -115,115 +90,112 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function cancel(
-        ContractUI $item,
-        Model $causative,
-        bool $force = false
-    ): self {
+    public function cancel(?string $cancelDate = null): self
+    {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        $contract = $this->getContract($item);
-        $this->logTransaction($contract, $causative, now()->toDateTimeString(), 0, TransactionTypeEnum::CANCEL);
-        if ($force) {
-            $contract->update(['end_at' => now()->toDateTimeString()]);
-        }
+        $cancelDate = $cancelDate ?: now()->toDateTimeString();
+        $this->subscription->update(['canceled_at' => $cancelDate]);
 
-        $this->sync();
+        event(new SubscriptionCanceled($this->subscription));
 
         return $this;
     }
 
-    private function getContract(
-        ContractUI $item,
-        ?string $startAt = null,
-        ?int $period = null
-    ): SubscriptionContract {
-        $contractItem = $this->subscription->contracts()->firstWhere('code', $item->getCode());
+    /**
+     * @throws \Throwable
+     */
+    public function resume(): self
+    {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        if (!$contractItem) {
-            [$startAt, $endAt] = $this->getDateRange($startAt, $period);
-            $contractItem = $this->subscription->contracts()->create([
-                'code' => $item->getCode(),
-                'product_type' => get_class($item),
-                'product_id' => $item->getKey(),
-                'start_at' => $startAt,
-                'end_at' => $item->isRecurring() ? $endAt : null,
-                'type' => $item->isRecurring() ? BillingCycleEnum::RECURRING : BillingCycleEnum::NON_RECURRING,
-            ]);
-        }
+        $this->subscription->update(['canceled_at' => null]);
 
-        return $contractItem;
-    }
+        event(new SubscriptionCanceled($this->subscription));
 
-    private function logTransaction(
-        SubscriptionContract $contract,
-        Model $causative,
-        ?string $startAt = null,
-        ?int $period = null,
-        ?TransactionTypeEnum $type = null,
-    ): SubscriptionContractTransaction {
-        [$startAt, $endAt] = $this->getDateRange($startAt, $period);
-
-        /* @var SubscriptionContractTransaction */
-        return $contract->transactions()->create([
-            'type' => $type ?: ($contract->transactions()->exists() ? TransactionTypeEnum::RENEW : TransactionTypeEnum::NEW),
-            'start_at' => $startAt,
-            'end_at' => $contract->type === BillingCycleEnum::NON_RECURRING ? null : $endAt,
-            'causative_type' => get_class($causative),
-            'causative_id' => $causative->getKey(),
-        ]);
+        return $this;
     }
 
     /**
-     * @return array<string>
+     * @throws \Throwable
      */
-    private function getDateRange(?string $startAt = null, ?int $period = null): array
+    private function suppress(?string $suppressionDate = null): void
     {
-        $startAt ??= now()->toDateTimeString();
-        $endAt = $period
-            ? Carbon::parse($startAt)->addMonths($period)->toDateTimeString()
-            : $this->subscription->end_at;
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        return [$startAt, $endAt];
+        $suppressionDate = $suppressionDate ?: now()->toDateTimeString();
+        $this->subscription->update(['suppressed_at' => $suppressionDate]);
+
+        event(new SubscriptionSuppressed($this->subscription));
     }
 
-    private function sync(): void
+    /**
+     * @throws \Throwable
+     */
+    public function renew(?int $period = null, bool $withPlugins = true): self
     {
-        $this->subscription->quotas()->forceDelete();
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        $this->subscription->contracts()->valid()
-            ->get()->each(function (SubscriptionContract $contract) {
-                $contract->product->getFeatures()->each(function (Feature $feature, int|string $_) {
-                    if ($feature->pivot->active ?? false) {
-                        $this->syncFeature($feature, $feature->pivot->value);
-                    }
-                });
+        $period = $period ?: $this->subscription->getBillingPeriod();
+        $lastEndDate = $this->subscription->end_at;
+        $endDate = Carbon::parse($lastEndDate)->addMonths($period)->endOfDay()->toDateTimeString();
+        $this->subscription->update(['end_at' => $endDate]);
+
+        if ($withPlugins) {
+            $this->contractsHandler->getActivePlugin()->each(function (SubscriptionContract $contract) use ($lastEndDate) {
+                $this->contractsHandler->install($contract->product, $this->subscription->subscriber, $lastEndDate->addDay()->toDateTimeString());
             });
+        }
+
+        $this->refresh();
+
+        event(new SubscriptionRenewd($this->subscription));
+
+        return $this;
     }
 
-    private function syncFeature(Feature $feature, ?int $quota = null): void
+    /**
+     * @throws \Throwable
+     */
+    public function addPlugin(ContractUI $item, ?Model $causative = null, ?string $startAt = null): self
     {
-        $old = $this->subscription->quotas()->where('code', $feature->code)->first();
-        if (!$old) {
-            $consumed = $feature->isConsumable()
-                ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
-                    ->whereDate("created_at", '<=', $this->subscription->end_at)
-                    ->whereDate("created_at", '>=', Carbon::parse($this->subscription->end_at)->subMonths($this->subscription->billing_period)->toDateString())
-                    ->sum('consumed')
-                : 0;
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-            $this->subscription->quotas()->create([
-                'code' => $feature->code,
-                'limited' => $feature->isConsumable(),
-                'feature_id' => $feature->getKey(),
-                'quota' => $feature->isConsumable() ? $quota : 0,
-                'consumed' => $consumed ?: 0,
-                'end_at' => $this->subscription->end_at,
-            ]);
-        } else {
-            $old->update([
-                'quota' => $feature->isConsumable() ? ($old->quota + $quota) : 0,
-            ]);
-        }
+        $this->contractsHandler->install($item, $causative ?? $this->subscription->subscriber, $startAt);
+
+        $this->refresh();
+
+        return $this;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function cancelPlugin(ContractUI $item, ?Model $causative = null): self
+    {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
+
+        $this->contractsHandler->cancel($item, $causative ?? $this->subscription->subscriber);
+
+        return $this;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function resumePlugin(ContractUI $item, ?Model $causative = null): self
+    {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
+
+        $this->contractsHandler->resume($item, $causative ?? $this->subscription->subscriber);
+
+        return $this;
+    }
+
+    public function refresh(): self
+    {
+        $this->contractsHandler->sync();
+
+        return $this;
     }
 }
