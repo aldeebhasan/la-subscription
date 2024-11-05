@@ -33,11 +33,12 @@ class SubscriptionQuota extends LaModel
     {
         return $builder->where(function (Builder $query) {
             $query->where('limited', false)->where(function (Builder $query) {
-                $query->whereNull('end_at')->orWhere('end_at', '>=', now());
+                $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
             })->orWhere(function (Builder $limited) {
                 $limited->where('limited', true)->whereColumn('quota', '>', 'consumed')
                     ->where(function (Builder $query) {
-                        $query->whereNull('end_at')->orWhere('end_at', '>=', now());
+                        $graceDays = config('subscription.grace_period', 0);
+                        $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
                     });
             });
         });
@@ -50,6 +51,8 @@ class SubscriptionQuota extends LaModel
 
     public function active(): bool
     {
-        return !$this->end_at || $this->end_at->gte(now());
+        $graceDays = config('subscription.grace_period', 0);
+
+        return !$this->end_at || $this->end_at->addDays($graceDays)->gte(now());
     }
 }
