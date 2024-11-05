@@ -3,6 +3,7 @@
 namespace Aldeebhasan\LaSubscription\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -58,9 +59,37 @@ class Subscription extends LaModel
         return !is_null($this->canceled_at);
     }
 
+    public function scopeCanceled(Builder $query): Builder
+    {
+        return $query->whereNotNull('canceled_at');
+    }
+
     public function isSupersede(): bool
     {
         return !is_null($this->supersede_at);
+    }
+
+    public function scopeSupersede(Builder $query): Builder
+    {
+        return $query->whereNotNull('supersede_at');
+    }
+
+    public function isOnGracePeriod(): bool
+    {
+        return is_null($this->end_at) || $this->end_at->gte(now());
+    }
+
+    public function scopeOnGracePeriod(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->whereNull('end_at')->orWhere('end_at', '>=', now());
+        });
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        /* @phpstan-ignore-next-line */
+        return $query->onGracePeriod()->whereNot(fn(Builder $query) => $query->supersede()->orWhere->canceled());
     }
 
     public function getBillingPeriod(): int
