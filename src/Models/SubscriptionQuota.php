@@ -37,7 +37,6 @@ class SubscriptionQuota extends LaModel
             })->orWhere(function (Builder $limited) {
                 $limited->where('limited', true)->whereColumn('quota', '>', 'consumed')
                     ->where(function (Builder $query) {
-                        $graceDays = config('subscription.grace_period', 0);
                         $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
                     });
             });
