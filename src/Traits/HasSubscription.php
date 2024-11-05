@@ -2,7 +2,11 @@
 
 namespace Aldeebhasan\LaSubscription\Traits;
 
+use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
+use Aldeebhasan\LaSubscription\Enums\ConsumptionTypeEnum;
+use Aldeebhasan\LaSubscription\Exceptions\FeatureNotFoundExp;
+use Aldeebhasan\LaSubscription\Exceptions\FeatureQuotaLimitExp;
 use Aldeebhasan\LaSubscription\LaSubscription;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionQuota;
@@ -15,15 +19,36 @@ use Illuminate\Support\Collection;
 /** @property Subscription|null $subscription */
 trait HasSubscription
 {
-    public function getSubscription(): ?Subscription
+    protected ?Collection $loadedSubscriptionQuotas = null;
+
+    public function getSubscription(bool $fresh = false): ?Subscription
     {
+        /* @var  Model $this */
+        if ($fresh || !$this->relationLoaded('subscription')) {
+            $this->load('subscription');
+        }
+
         return $this->subscription;
     }
 
     /** @return  Collection<SubscriptionQuota> */
-    public function getSubscriptionQuotas(): Collection
+    protected function getSubscriptionQuotas(): Collection
     {
-        return $this->getSubscription()?->quotas ?? collect();
+        if (!is_null($this->loadedSubscriptionQuotas)) {
+            return $this->loadedSubscriptionQuotas;
+        }
+
+        return $this->loadedSubscriptionQuotas = $this->getSubscription()?->quotas ?? collect();
+    }
+
+    protected function getFeature(string $code): ?SubscriptionQuota
+    {
+        return $this->getSubscriptionQuotas()->firstWhere('code', $code);
+    }
+
+    public function hasFeature($featureName): bool
+    {
+        return empty($this->getFeature($featureName));
     }
 
     public function subscription(): MorphOne
@@ -38,19 +63,21 @@ trait HasSubscription
         return $this->morphMany(Subscription::class, 'subscriber');
     }
 
+    public function isSubscribedTo(ContractUI $plan): bool
+    {
+        return $this->getSubscription()->plan_id === $plan->getKey();
+    }
+
     public function subscriptionHandler(): LaSubscription
     {
         /* @var  SubscriberUI $this */
         return LaSubscription::make($this);
     }
 
-    public function canUse(string|array $codes): bool
+    public function canConsume(string|array $codes): bool
     {
-        $quotas = $this->getSubscriptionQuotas();
-
         foreach (Arr::wrap($codes) as $code) {
-            /** @var SubscriptionQuota $quota */
-            $quota = $quotas->firstWhere('code', $code);
+            $quota = $this->getFeature($code);
             if (!$quota || !$quota->canUse()) {
                 return false;
             }
@@ -59,8 +86,87 @@ trait HasSubscription
         return true;
     }
 
-    public function consume(string $code): void
+    public function canConsumeAny(string|array $codes): bool
     {
-        $quotas = $this->getSubscriptionQuotas();
+        $canUse = false;
+        foreach (Arr::wrap($codes) as $code) {
+            $quota = $this->getFeature($code);
+            $canUse = $canUse || ($quota && $quota->canUse());
+        }
+
+        return $canUse;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function consume(string $code, float $amount = 1): void
+    {
+        $quota = $this->getFeature($code);
+
+        throw_if(!$quota, FeatureNotFoundExp::class);
+        throw_if(!$quota->canUse(), FeatureQuotaLimitExp::class);
+
+        if ($quota->limited) {
+            $quota->increment('consumed', $amount);
+            $this->getSubscription()->consumptions()->create([
+                'code' => $quota->code,
+                'feature_id' => $quota->feature_id,
+                'consumed' => $amount,
+                'type' => ConsumptionTypeEnum::INC,
+            ]);
+        }
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function unConsume(string $code, float $amount = 1): void
+    {
+        $quota = $this->getFeature($code);
+
+        throw_if(!$quota, FeatureNotFoundExp::class);
+
+        if ($quota->limited) {
+            $quota->decrement('consumed', $amount);
+            $this->getSubscription()->consumptions()->create([
+                'code' => $quota->code,
+                'feature_id' => $quota->feature_id,
+                'consumed' => $amount,
+                'type' => ConsumptionTypeEnum::DEC,
+            ]);
+        }
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function getCurrentConsumption(string $code): int|float
+    {
+        $quota = $this->getFeature($code);
+
+        throw_if(!$quota, FeatureNotFoundExp::class);
+
+        if ($quota->limited) {
+            return max($quota->consumed, 0);
+        }
+
+        return 0;
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function getBalance(string $code): int|float
+    {
+        $quota = $this->getFeature($code);
+
+        throw_if(!$quota, FeatureNotFoundExp::class);
+
+        if ($quota->limited) {
+            return max($quota->quota - $quota->consumed, 0);
+        }
+
+        return 0;
     }
 }

@@ -2,11 +2,12 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property string $end_at
+ * @property ?Carbon $end_at
  * @property Feature $feature
  */
 class SubscriptionQuota extends LaModel
@@ -15,6 +16,7 @@ class SubscriptionQuota extends LaModel
     protected $casts = [
         'quota' => 'double',
         'consumed' => 'double',
+        'end_at' => 'datetime',
     ];
 
     public function subscription(): BelongsTo
@@ -43,6 +45,11 @@ class SubscriptionQuota extends LaModel
 
     public function canUse(): bool
     {
-        return !$this->limited || ($this->consumed < $this->quota);
+        return (!$this->limited || ($this->consumed < $this->quota)) && $this->active();
+    }
+
+    public function active(): bool
+    {
+        return !$this->end_at || $this->end_at->gte(now());
     }
 }

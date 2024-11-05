@@ -2,6 +2,8 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Aldeebhasan\LaSubscription\Enums\ConsumptionTypeEnum;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,10 +13,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class FeatureConsumption extends LaModel
 {
-    protected $fillable = ['subscription_id', 'code', 'feature_id', 'consumed'];
+    protected $fillable = ['subscription_id', 'code', 'feature_id', 'consumed', 'type'];
     protected $casts = [
         'quota' => 'double',
         'consumed' => 'double',
+        'type' => ConsumptionTypeEnum::class,
     ];
 
     public function subscription(): BelongsTo
@@ -27,17 +30,9 @@ class FeatureConsumption extends LaModel
         return $this->belongsTo(Feature::class);
     }
 
-    public function scopeValid(Builder $builder): Builder
+    public function scopeValid(Builder $builder, string|Carbon $startAt, string|Carbon $endAt): Builder
     {
-        return $builder->where(function (Builder $query) {
-            $query->where('limited', false)->where(function (Builder $query) {
-                $query->whereNull('end_at')->orWhere('end_at', '>=', now());
-            })->orWhere(function (Builder $limited) {
-                $limited->where('limited', true)->whereColumn('quota', '>', 'consumed')
-                    ->where(function (Builder $query) {
-                        $query->whereNull('end_at')->orWhere('end_at', '>=', now());
-                    });
-            });
-        });
+        return $builder->whereDate("created_at", '>=', $startAt)
+            ->whereDate("created_at", '<=', $endAt);
     }
 }

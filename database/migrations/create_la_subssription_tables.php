@@ -107,6 +107,7 @@ return new class extends Migration
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Feature::class);
             $table->string("code");
             $table->double('consumed')->unsigned()->default(0);
+            $table->enum('type', ['increase', 'decrease'])->default('decrease');
             $table->timestamps();
             $table->softDeletes();
         });

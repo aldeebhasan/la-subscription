@@ -12,14 +12,13 @@ use Aldeebhasan\LaSubscription\Models\SubscriptionContractTransaction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 readonly class ContractsHandler
 {
-
     public function __construct(private Subscription $subscription)
     {
     }
-
 
     /**
      * @return Collection<SubscriptionContract>
@@ -35,7 +34,6 @@ readonly class ContractsHandler
         ?string $startAt = null,
         ?int $period = null
     ): self {
-
         $contract = $this->getContract($item, $startAt, $period);
         $transaction = $this->logTransaction($contract, $causative, $startAt, $period);
 
@@ -49,7 +47,6 @@ readonly class ContractsHandler
         return $this;
     }
 
-
     public function cancel(ContractUI $item, Model $causative): self
     {
         $contract = $this->getContract($item);
@@ -62,7 +59,6 @@ readonly class ContractsHandler
 
     public function resume(ContractUI $item, Model $causative): self
     {
-
         $contract = $this->getContract($item);
         $this->logTransaction($contract, $causative, type: TransactionTypeEnum::RESUME);
 
@@ -131,38 +127,37 @@ readonly class ContractsHandler
 
         $this->subscription->plan->getFeatures()->each(function (Feature $feature, int|string $_) {
             if ($feature->pivot->active ?? false) {
-                $this->syncFeature($feature, $feature->pivot->value);
+                $this->syncFeature($feature, $feature->pivot->value, false);
             }
         });
 
-        $this->subscription->contracts()->valid()
+        $this->subscription->contracts()->with('product')->valid()
             ->get()->each(function (SubscriptionContract $contract) {
-                $contract->product->getFeatures()->each(function (Feature $feature, int|string $_) {
+                $contract->product->getFeatures()->each(function (Feature $feature, int|string $_) use ($contract) {
                     if ($feature->pivot->active ?? false) {
-                        $this->syncFeature($feature, $feature->pivot->value);
+                        $this->syncFeature($feature, $feature->pivot->value, $contract->product->isRecurring());
                     }
                 });
             });
     }
 
-    private function syncFeature(Feature $feature, ?int $quota = null): void
+    private function syncFeature(Feature $feature, ?int $quota = null, bool $isRecurring = false): void
     {
         $old = $this->subscription->quotas()->where('code', $feature->code)->first();
         if (!$old) {
             $consumed = $feature->isConsumable()
                 ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
-                    ->whereDate("created_at", '<=', $this->subscription->end_at)
-                    ->whereDate("created_at", '>=', $this->subscription->end_at->subMonths($this->subscription->getBillingPeriod())->toDateString())
-                    ->sum('consumed')
+                    ->valid($this->subscription->end_at->subMonths($this->subscription->getBillingPeriod()), $this->subscription->end_at)
+                    ->sum(DB::raw("IF(type = 'increase',consumed,-consumed)"))
                 : 0;
-
+            $quota = $quota ?: 0;
             $this->subscription->quotas()->create([
                 'code' => $feature->code,
                 'limited' => $feature->isConsumable(),
                 'feature_id' => $feature->getKey(),
                 'quota' => $feature->isConsumable() ? $quota : 0,
-                'consumed' => $consumed ?: 0,
-                'end_at' => $this->subscription->end_at,
+                'consumed' => $consumed,
+                'end_at' => $isRecurring ? $this->subscription->end_at : null,
             ]);
         } else {
             $old->update([
@@ -170,5 +165,4 @@ readonly class ContractsHandler
             ]);
         }
     }
-
 }
