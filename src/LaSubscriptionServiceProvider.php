@@ -15,7 +15,7 @@ class LaSubscriptionServiceProvider extends ServiceProvider
         ], 'la-subscription-config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations' => default_migration_path(),
+            __DIR__ . '/../database/migrations' => database_path("migrations"),
         ], 'la-subscription-migrations');
     }
 
