@@ -78,14 +78,15 @@ class Subscription extends LaModel
     {
         $graceDays = config('subscription.grace_period', 0);
 
-        return is_null($this->end_at) || $this->end_at->addDays($graceDays)->gte(now());
+        return $this->start_at->lte(now()) && (is_null($this->end_at) || $this->end_at->addDays($graceDays)->gte(now()));
     }
 
     public function scopeOnGracePeriod(Builder $query): Builder
     {
-        return $query->where(function (Builder $query) {
-            $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
-        });
+        return $query->whereDate('start_at', '<=', now())
+            ->where(function (Builder $query) {
+                $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
+            });
     }
 
     public function scopeActive(Builder $query): Builder

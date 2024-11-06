@@ -31,7 +31,9 @@ class LaSubscription
     private function __construct(private readonly SubscriberUI $subscriber)
     {
         $this->subscription = $subscriber->getSubscription();
-        $this->contractsHandler = new ContractsHandler($this->subscription);
+        if ($this->subscription) {
+            $this->contractsHandler = new ContractsHandler($this->subscription);
+        }
     }
 
     public function reload(): self
@@ -58,6 +60,7 @@ class LaSubscription
             ->setPeriod($period)
             ->create();
 
+        $this->reload();
         $this->refresh();
 
         event(new SubscriptionStarted($this->subscription));
@@ -80,6 +83,7 @@ class LaSubscription
             ->setPeriod($period ?? $this->subscription->getBillingPeriod())
             ->create();
 
+        $this->reload();
         $this->refresh();
 
         event(new SubscriptionSwitched($this->subscription));

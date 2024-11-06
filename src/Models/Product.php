@@ -32,7 +32,7 @@ class Product extends LaModel implements ContractUI
 
         return $this->belongsToMany(
             Feature::class,
-            "{$prefix}__product_feature",
+            "{$prefix}_product_feature",
             "product_id",
             "feature_id",
         )->withPivot('value', 'active');

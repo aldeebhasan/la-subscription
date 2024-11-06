@@ -10,7 +10,6 @@ use Aldeebhasan\LaSubscription\Exceptions\FeatureQuotaLimitExp;
 use Aldeebhasan\LaSubscription\LaSubscription;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionQuota;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Arr;
@@ -23,7 +22,6 @@ trait HasSubscription
 
     public function getSubscription(bool $fresh = false): ?Subscription
     {
-        /* @var  Model $this */
         if ($fresh || !$this->relationLoaded('subscription')) {
             $this->load('subscription');
         }
@@ -53,13 +51,11 @@ trait HasSubscription
 
     public function subscription(): MorphOne
     {
-        /* @var  Model $this */
         return $this->morphOne(Subscription::class, 'subscriber')->ofMany("start_at", 'MAX');
     }
 
     public function subscriptions(): MorphMany
     {
-        /* @var  Model $this */
         return $this->morphMany(Subscription::class, 'subscriber');
     }
 

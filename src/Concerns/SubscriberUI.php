@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 interface SubscriberUI
 {
-    public function getSubscription(): ?Subscription;
+    public function getSubscription(bool $fresh = false): ?Subscription;
 
     public function subscription(): MorphOne;
 

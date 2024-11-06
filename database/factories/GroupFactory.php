@@ -3,12 +3,12 @@
 namespace Aldeebhasan\LaSubscription\Database\Factories;
 
 use Aldeebhasan\LaSubscription\Enums\GroupTypeEnum;
-use Aldeebhasan\LaSubscription\Models\Product;
+use Aldeebhasan\LaSubscription\Models\Group;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class GroupFactory extends Factory
 {
-    protected $model = Product::class;
+    protected $model = Group::class;
 
     public function definition(): array
     {

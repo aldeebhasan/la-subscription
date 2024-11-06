@@ -5,6 +5,7 @@ namespace Aldeebhasan\LaSubscription\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class LaModel extends Model
 {
@@ -13,7 +14,7 @@ class LaModel extends Model
     public function getTable(): string
     {
         $prefix = config('subscription.prefix');
-        $table = parent::getTable();
+        $table = Str::snake(Str::pluralStudly(class_basename($this)));
 
         return "{$prefix}_{$table}";
     }
