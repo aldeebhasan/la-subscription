@@ -19,7 +19,7 @@ it('can subscribe to plan', function () {
         ->getSubscription();
 
     expect($subscription)->not->toBeNull();
-    expect($subscription->isOnGracePeriod())->toBeTrue();
+    expect($subscription->isValid())->toBeTrue();
     expect($subscription->end_at->toDateString())->toBe(now()->addMonths(12)->toDateString());
 });
 
@@ -31,9 +31,8 @@ it('can subscribe to plan in future', function () {
         ->subscribeTo($plan, now()->addMonth(), 12)
         ->getSubscription();
 
-    $subscription = $subscriber->getSubscription();
     expect($subscription)->not->toBeNull();
-    expect($subscription->isOnGracePeriod())->toBeFalse();
+    expect($subscription->isValid())->toBeFalse();
     expect($subscription->end_at->toDateString())->toBe(now()->addMonths(13)->toDateString());
 });
 
@@ -66,8 +65,9 @@ it('can switch to new plan', function () {
 
     expect(Subscription::count())->toBe(2);
     expect($oldSubscription->isActive())->toBeFalse();
+    expect($oldSubscription->isSuppressed())->toBeTrue();
     expect($newSubscription->isActive())->toBeTrue();
-    expect($newSubscription->isOnGracePeriod())->toBeTrue();
+    expect($newSubscription->isValid())->toBeTrue();
     expect($newSubscription->end_at->toDateString())->toBe(now()->addMonths(12)->toDateString());
 });
 
@@ -88,6 +88,51 @@ it('can switch to new plan in future', function () {
     expect(Subscription::count())->toBe(2);
     expect($oldSubscription->isActive())->toBeFalse();
     expect($newSubscription->isActive())->toBeFalse();
-    expect($newSubscription->isOnGracePeriod())->toBeFalse();
+    expect($newSubscription->isValid())->toBeFalse();
     expect($newSubscription->end_at->toDateString())->toBe(now()->addMonths(13)->toDateString());
+});
+
+it('can renew current plan', function () {
+    $plan = Product::factory()->create();
+    $subscriber = User::factory()->create();
+
+    $subscription = LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now(), 12)
+        ->renew(12)
+        ->getSubscription();
+
+    expect($subscription->isValid())->toBeTrue();
+    expect($subscription->end_at->toDateString())->toBe(now()->addMonths(24)->toDateString());
+});
+
+it('can cancel current subscription', function () {
+    $plan = Product::factory()->create();
+    $subscriber = User::factory()->create();
+
+    $subscription = LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now(), 12)
+        ->cancel(now()->addMonth())
+        ->getSubscription();
+
+    expect($subscription->isValid())->toBeTrue();
+    expect($subscription->isActive())->toBeFalse();
+    expect($subscription->end_at->toDateString())->toBe(now()->addMonths(12)->toDateString());
+});
+
+it('can resume current canceled subscription', function () {
+    $plan = Product::factory()->create();
+    $subscriber = User::factory()->create();
+
+    $manager = LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now(), 12)
+        ->cancel(now()->addMonth());
+
+    $subscription = $manager->getSubscription();
+    expect($subscription->isValid())->toBeTrue();
+    expect($subscription->isActive())->toBeFalse();
+
+    $subscription = $manager->resume()->getSubscription();
+
+    expect($subscription->isActive())->toBeTrue();
+    expect($subscription->end_at->toDateString())->toBe(now()->addMonths(12)->toDateString());
 });

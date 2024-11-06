@@ -2,6 +2,7 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Aldeebhasan\LaSubscription\Traits\ValidTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Subscription extends LaModel
 {
+    use ValidTrait;
+
     protected $fillable = ['subscriber_type', 'subscriber_id', 'plan_id', 'start_at', 'end_at', 'suppressed_at', 'canceled_at', 'billing_period'];
     protected $casts = [
         'start_at' => 'datetime',
@@ -74,24 +77,9 @@ class Subscription extends LaModel
         return $query->whereNotNull('suppressed_at');
     }
 
-    public function isOnGracePeriod(): bool
-    {
-        $graceDays = config('subscription.grace_period', 0);
-
-        return $this->start_at->lte(now()) && (is_null($this->end_at) || $this->end_at->addDays($graceDays)->gte(now()));
-    }
-
-    public function scopeOnGracePeriod(Builder $query): Builder
-    {
-        return $query->whereDate('start_at', '<=', now())
-            ->where(function (Builder $query) {
-                $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
-            });
-    }
-
     public function isActive(): bool
     {
-        return $this->isOnGracePeriod()
+        return $this->isValid()
             && !$this->isCanceled()
             && !$this->isSuppressed();
     }
@@ -99,7 +87,7 @@ class Subscription extends LaModel
     public function scopeActive(Builder $query): Builder
     {
         /* @phpstan-ignore-next-line */
-        return $query->onGracePeriod()->whereNot(fn(Builder $query) => $query->suppressed()->orWhere->canceled());
+        return $query->valid()->whereNot(fn(Builder $query) => $query->suppressed()->orWhere->canceled());
     }
 
     public function getBillingPeriod(): int

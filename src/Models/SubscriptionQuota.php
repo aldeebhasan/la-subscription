@@ -2,6 +2,7 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Aldeebhasan\LaSubscription\Traits\ValidTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class SubscriptionQuota extends LaModel
 {
+    use ValidTrait;
+
     protected $fillable = ['subscription_id', 'code', 'limited', 'feature_id', 'quota', 'consumed', 'end_at'];
     protected $casts = [
         'quota' => 'double',
@@ -29,29 +32,20 @@ class SubscriptionQuota extends LaModel
         return $this->belongsTo(Feature::class);
     }
 
-    public function scopeValid(Builder $builder): Builder
+    public function isActive(): bool
     {
-        return $builder->where(function (Builder $query) {
-            $query->where('limited', false)->where(function (Builder $query) {
-                $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
-            })->orWhere(function (Builder $limited) {
-                $limited->where('limited', true)->whereColumn('quota', '>', 'consumed')
-                    ->where(function (Builder $query) {
-                        $query->whereNull('end_at')->orWhere(gracedEndDateColumn(), '>=', now());
-                    });
-            });
+        return (!$this->limited || ($this->consumed < $this->quota)) && $this->isValid();
+    }
+
+    public function scopeActive(Builder $builder): Builder
+    {
+        /* @phpstan-ignore-next-line  */
+        return $builder->valid()->where(function (Builder $query) {
+            $query->where('limited', false)
+                ->orWhere(function (Builder $limited) {
+                    $limited->where('limited', true)
+                        ->whereColumn('quota', '>', 'consumed');
+                });
         });
-    }
-
-    public function canUse(): bool
-    {
-        return (!$this->limited || ($this->consumed < $this->quota)) && $this->active();
-    }
-
-    public function active(): bool
-    {
-        $graceDays = config('subscription.grace_period', 0);
-
-        return !$this->end_at || $this->end_at->addDays($graceDays)->gte(now());
     }
 }

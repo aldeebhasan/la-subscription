@@ -22,7 +22,11 @@ if (!function_exists('gracedEndDateColumn')) {
     {
         $graceDays = config('subscription.grace_period', 0);
         if ($graceDays > 0) {
-            return DB::raw("DATE_ADD(end_at, INTERVAL {$graceDays} DAY)");
+            if (DB::getDriverName() === 'sqlite') {
+                return DB::raw(sprintf('date(end_at, "+%d days")', $graceDays));
+            } else {
+                return DB::raw(sprintf("DATE_ADD(end_at, INTERVAL %d DAY)", $graceDays));
+            }
         }
 
         return "end_at";

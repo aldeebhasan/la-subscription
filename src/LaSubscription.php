@@ -160,6 +160,7 @@ class LaSubscription
             });
         }
 
+        $this->reload();
         $this->refresh();
 
         event(new SubscriptionRenewd($this->subscription));
@@ -170,12 +171,13 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function addPlugin(ContractUI $item, ?Model $causative = null, string|CarbonInterface|null $startAt = null): self
+    public function addPlugin(ContractUI $item, string|CarbonInterface|null $startAt = null, ?Model $causative = null): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
         $this->contractsHandler->install($item, $causative ?? $this->subscription->subscriber, $startAt);
 
+        $this->reload();
         $this->refresh();
 
         return $this;
@@ -190,6 +192,8 @@ class LaSubscription
 
         $this->contractsHandler->cancel($item, $causative ?? $this->subscription->subscriber);
 
+        $this->reload();
+
         return $this;
     }
 
@@ -201,6 +205,8 @@ class LaSubscription
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
         $this->contractsHandler->resume($item, $causative ?? $this->subscription->subscriber);
+
+        $this->reload();
 
         return $this;
     }

@@ -8,6 +8,7 @@ use Aldeebhasan\LaSubscription\Exceptions\FeatureNotFoundExp;
 use Aldeebhasan\LaSubscription\Exceptions\FeatureQuotaLimitExp;
 use Aldeebhasan\LaSubscription\LaSubscription;
 use Aldeebhasan\LaSubscription\Models\Subscription;
+use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
 use Aldeebhasan\LaSubscription\Models\SubscriptionQuota;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -18,6 +19,7 @@ use Illuminate\Support\Collection;
 trait HasSubscription
 {
     protected ?Collection $loadedSubscriptionQuotas = null;
+    protected ?Collection $loadedSubscriptionContacts = null;
     protected ?Subscription $subscription = null;
 
     public function getSubscription(bool $fresh = false): ?Subscription
@@ -29,6 +31,9 @@ trait HasSubscription
         if (!$this->relationLoaded('lastSubscription') || $fresh) {
             $this->load('lastSubscription');
         }
+
+        $this->loadedSubscriptionContacts = null;
+        $this->loadedSubscriptionQuotas = null;
 
         return $this->subscription = $this->lastSubscription;
     }
@@ -48,9 +53,29 @@ trait HasSubscription
         return $this->getSubscriptionQuotas()->firstWhere('code', $code);
     }
 
-    public function hasFeature($featureName): bool
+    public function hasFeature(string $name): bool
     {
-        return empty($this->getFeature($featureName));
+        return !empty($this->getFeature($name));
+    }
+
+    /** @return  Collection<SubscriptionContract> */
+    protected function getSubscriptionContracts(): Collection
+    {
+        if (!is_null($this->loadedSubscriptionContacts)) {
+            return $this->loadedSubscriptionContacts;
+        }
+
+        return $this->loadedSubscriptionContacts = $this->getSubscription()?->contracts ?? collect();
+    }
+
+    public function getPlugin(string $code): ?SubscriptionContract
+    {
+        return $this->getSubscriptionContracts()->firstWhere('code', $code);
+    }
+
+    public function hasPlugin(string $name): bool
+    {
+        return !empty($this->getPlugin($name));
     }
 
     public function lastSubscription(): MorphOne
@@ -77,7 +102,7 @@ trait HasSubscription
     {
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);
-            if (!$quota || !$quota->canUse()) {
+            if (!$quota || !$quota->valid()) {
                 return false;
             }
         }
@@ -90,7 +115,7 @@ trait HasSubscription
         $canUse = false;
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);
-            $canUse = $canUse || ($quota && $quota->canUse());
+            $canUse = $canUse || ($quota && $quota->valid());
         }
 
         return $canUse;
@@ -104,7 +129,7 @@ trait HasSubscription
         $quota = $this->getFeature($code);
 
         throw_if(!$quota, FeatureNotFoundExp::class);
-        throw_if(!$quota->canUse(), FeatureQuotaLimitExp::class);
+        throw_if(!$quota->valid(), FeatureQuotaLimitExp::class);
 
         if ($quota->limited) {
             $quota->increment('consumed', $amount);

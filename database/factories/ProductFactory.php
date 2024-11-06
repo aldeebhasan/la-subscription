@@ -15,7 +15,7 @@ class ProductFactory extends Factory
     {
         return [
             'name' => $name = $this->faker->name,
-            'code' => str($name)->slug(),
+            'code' => str($name)->slug()->toString(),
             'description' => $this->faker->text,
             'group_id' => Group::factory(),
             'active' => true,
