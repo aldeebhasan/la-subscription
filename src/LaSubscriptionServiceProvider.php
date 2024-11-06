@@ -12,7 +12,7 @@ class LaSubscriptionServiceProvider extends ServiceProvider
             __DIR__ . '/../config/subscription.php' => config_path('subscription.php'),
         ], 'la-subscription-config');
 
-        $this->publishesMigrations([
+        $this->publishes([
             __DIR__ . '/../database/migrations' => database_path("migrations"),
         ], 'la-subscription-migrations');
     }
