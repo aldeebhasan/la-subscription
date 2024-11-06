@@ -3,9 +3,9 @@
 namespace Aldeebhasan\LaSubscription\Handler;
 
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
-use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
 use Aldeebhasan\LaSubscription\Exceptions\SubscriptionRequiredExp;
 use Aldeebhasan\LaSubscription\Models\Subscription;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class SubscriptionBuilder
@@ -15,12 +15,12 @@ class SubscriptionBuilder
     private ?string $endDate = null;
     private int $period = 1;
 
-    public static function make(SubscriberUI $subscriber): self
+    public static function make(Model $subscriber): self
     {
         return new self($subscriber);
     }
 
-    private function __construct(private readonly SubscriberUI $subscriber)
+    private function __construct(private readonly Model $subscriber)
     {
     }
 
@@ -76,13 +76,12 @@ class SubscriptionBuilder
     {
         throw_if(!$this->plan, SubscriptionRequiredExp::class);
 
-        $this->subscriber->subscriptions()->create([
+        /** @phpstan-ignore-next-line  */
+        return $this->subscriber->subscriptions()->create([
             'plan_id' => $this->plan->getKey(),
             'start_at' => $this->getStartDate(),
             'end_at' => $this->getEndDate(),
             'billing_period' => $this->getPeriod(),
         ]);
-
-        return $this->subscriber->getSubscription(true);
     }
 }

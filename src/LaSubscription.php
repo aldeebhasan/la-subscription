@@ -3,7 +3,6 @@
 namespace Aldeebhasan\LaSubscription;
 
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
-use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
 use Aldeebhasan\LaSubscription\Events\SubscriptionCanceled;
 use Aldeebhasan\LaSubscription\Events\SubscriptionRenewd;
 use Aldeebhasan\LaSubscription\Events\SubscriptionStarted;
@@ -15,6 +14,7 @@ use Aldeebhasan\LaSubscription\Handler\ContractsHandler;
 use Aldeebhasan\LaSubscription\Handler\SubscriptionBuilder;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
+use Aldeebhasan\LaSubscription\Traits\HasSubscription;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -23,14 +23,14 @@ class LaSubscription
     private ?Subscription $subscription;
     private ContractsHandler $contractsHandler;
 
-    public static function make(SubscriberUI $subscriber): self
+    public static function make(Model $subscriber): self
     {
         return new self($subscriber);
     }
 
-    private function __construct(private readonly SubscriberUI $subscriber)
+    private function __construct(private readonly Model $subscriber)
     {
-        $this->subscription = $subscriber->getSubscription();
+        $this->subscription = $this->getSubscription();
         if ($this->subscription) {
             $this->contractsHandler = new ContractsHandler($this->subscription);
         }
@@ -38,15 +38,18 @@ class LaSubscription
 
     public function reload(): self
     {
-        $this->subscription = $this->subscriber->getSubscription();
+        $this->subscription = $this->getSubscription();
         $this->contractsHandler = new ContractsHandler($this->subscription);
 
         return $this;
     }
 
-    public function getSubscription(): Subscription
+    public function getSubscription(): ?Subscription
     {
-        return $this->subscriber->getSubscription();
+        if (!method_exists($this->subscriber, "getSubscription")) {
+            throw new \LogicException("Subscriber should implement HasSubscription Trait");
+        }
+        return $this->subscriber->getSubscription(true);
     }
 
     /**
