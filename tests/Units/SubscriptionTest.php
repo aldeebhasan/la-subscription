@@ -6,7 +6,9 @@ use Aldeebhasan\LaSubscription\Models\Product;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Tests\Sample\App\Models\User;
 
-pest()->group('subscription');
+if (version_compare(\Pest\version(), "3.0.0") >= 0) {
+    pest()->group('subscription');
+}
 
 it('can subscribe to plan', function () {
     $plan = Product::factory()->create();
