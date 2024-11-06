@@ -1,3 +1,3 @@
 <?php
 
-pest()->group('plugin');
+pest()->group('plugins');

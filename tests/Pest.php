@@ -2,4 +2,4 @@
 
 use Aldeebhasan\LaSubscription\Tests\TestCase;
 
-pest()->extends(TestCase::class)->in(__DIR__);
+uses(TestCase::class)->in(__DIR__);
