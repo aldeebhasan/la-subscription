@@ -14,9 +14,8 @@ use Aldeebhasan\LaSubscription\Handler\ContractsHandler;
 use Aldeebhasan\LaSubscription\Handler\SubscriptionBuilder;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
-use Aldeebhasan\LaSubscription\Traits\HasSubscription;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 class LaSubscription
 {
@@ -30,7 +29,7 @@ class LaSubscription
 
     private function __construct(private readonly Model $subscriber)
     {
-        $this->subscription = $this->getSubscription();
+        $this->subscription = $this->loadFreshSubscription();
         if ($this->subscription) {
             $this->contractsHandler = new ContractsHandler($this->subscription);
         }
@@ -38,7 +37,7 @@ class LaSubscription
 
     public function reload(): self
     {
-        $this->subscription = $this->getSubscription();
+        $this->subscription = $this->loadFreshSubscription();
         $this->contractsHandler = new ContractsHandler($this->subscription);
 
         return $this;
@@ -46,16 +45,22 @@ class LaSubscription
 
     public function getSubscription(): ?Subscription
     {
+        return $this->subscription;
+    }
+
+    private function loadFreshSubscription(): ?Subscription
+    {
         if (!method_exists($this->subscriber, "getSubscription")) {
             throw new \LogicException("Subscriber should implement HasSubscription Trait");
         }
+
         return $this->subscriber->getSubscription(true);
     }
 
     /**
      * @throws \Throwable
      */
-    public function subscribeTo(ContractUI $item, ?string $startAt = null, int $period = 1): self
+    public function subscribeTo(ContractUI $item, string|CarbonInterface|null $startAt = null, int $period = 1): self
     {
         $this->subscription = SubscriptionBuilder::make($this->subscriber)
             ->setPlan($item)
@@ -74,15 +79,16 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function switchTo(ContractUI $item, ?string $startAt = null, ?int $period = null): self
+    public function switchTo(ContractUI $item, string|CarbonInterface|null $startAt = null, ?int $period = null): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
         throw_if($this->subscription->plan_id === $item->getKey(), SwitchToSamePlanExp::class);
 
-        $this->suppress();
+        $startAt ??= $this->subscription->start_at;
+        $this->suppress($startAt);
         $this->subscription = SubscriptionBuilder::make($this->subscriber)
             ->setPlan($item)
-            ->setStartDate($startAt ?? $this->subscription->start_at->toDateTimeString())
+            ->setStartDate($startAt)
             ->setPeriod($period ?? $this->subscription->getBillingPeriod())
             ->create();
 
@@ -97,11 +103,11 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function cancel(?string $cancelDate = null): self
+    public function cancel(string|CarbonInterface|null $cancelDate = null): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        $cancelDate = $cancelDate ?: now()->toDateTimeString();
+        $cancelDate = $cancelDate ? carbonParse($cancelDate) : now();
         $this->subscription->update(['canceled_at' => $cancelDate]);
 
         event(new SubscriptionCanceled($this->subscription));
@@ -126,11 +132,11 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    private function suppress(?string $suppressionDate = null): void
+    private function suppress(string|CarbonInterface|null $suppressionDate = null): void
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 
-        $suppressionDate = $suppressionDate ?: now()->toDateTimeString();
+        $suppressionDate = $suppressionDate ? carbonParse($suppressionDate) : now();
         $this->subscription->update(['suppressed_at' => $suppressionDate]);
 
         event(new SubscriptionSuppressed($this->subscription));
@@ -145,12 +151,12 @@ class LaSubscription
 
         $period = $period ?: $this->subscription->getBillingPeriod();
         $lastEndDate = $this->subscription->end_at;
-        $endDate = Carbon::parse($lastEndDate)->addMonths($period)->endOfDay()->toDateTimeString();
+        $endDate = $lastEndDate->clone()->addMonths($period)->endOfDay();
         $this->subscription->update(['end_at' => $endDate]);
 
         if ($withPlugins) {
             $this->contractsHandler->getActivePlugin()->each(function (SubscriptionContract $contract) use ($lastEndDate) {
-                $this->contractsHandler->install($contract->product, $this->subscription->subscriber, $lastEndDate->addDay()->toDateTimeString());
+                $this->contractsHandler->install($contract->product, $this->subscription->subscriber, $lastEndDate->addDay());
             });
         }
 
@@ -164,7 +170,7 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function addPlugin(ContractUI $item, ?Model $causative = null, ?string $startAt = null): self
+    public function addPlugin(ContractUI $item, ?Model $causative = null, string|CarbonInterface|null $startAt = null): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
 

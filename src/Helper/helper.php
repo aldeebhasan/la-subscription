@@ -1,7 +1,9 @@
 <?php
 
 use Aldeebhasan\LaSubscription\Models\Subscription;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 if (!function_exists('subscription')) {
@@ -24,5 +26,12 @@ if (!function_exists('gracedEndDateColumn')) {
         }
 
         return "end_at";
+    }
+}
+
+if (!function_exists('carbonParse')) {
+    function carbonParse(mixed $datetime): CarbonInterface
+    {
+        return Carbon::parse($datetime);
     }
 }

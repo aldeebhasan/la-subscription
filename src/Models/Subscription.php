@@ -21,11 +21,11 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Subscription extends LaModel
 {
-    protected $fillable = ['subscriber_type', 'subscriber_id', 'plan_id', 'start_at', 'end_at', 'supersede_at', 'canceled_at', 'billing_period'];
+    protected $fillable = ['subscriber_type', 'subscriber_id', 'plan_id', 'start_at', 'end_at', 'suppressed_at', 'canceled_at', 'billing_period'];
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
-        'supersede_at' => 'datetime',
+        'suppressed_at' => 'datetime',
         'canceled_at' => 'datetime',
     ];
 
@@ -64,14 +64,14 @@ class Subscription extends LaModel
         return $query->whereNotNull('canceled_at');
     }
 
-    public function isSupersede(): bool
+    public function isSuppressed(): bool
     {
-        return !is_null($this->supersede_at);
+        return !is_null($this->suppressed_at);
     }
 
     public function scopeSupersede(Builder $query): Builder
     {
-        return $query->whereNotNull('supersede_at');
+        return $query->whereNotNull('suppressed_at');
     }
 
     public function isOnGracePeriod(): bool
@@ -89,10 +89,17 @@ class Subscription extends LaModel
             });
     }
 
+    public function isActive(): bool
+    {
+        return $this->isOnGracePeriod()
+            && !$this->isCanceled()
+            && !$this->isSuppressed();
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         /* @phpstan-ignore-next-line */
-        return $query->onGracePeriod()->whereNot(fn(Builder $query) => $query->supersede()->orWhere->canceled());
+        return $query->onGracePeriod()->whereNot(fn(Builder $query) => $query->suppressed()->orWhere->canceled());
     }
 
     public function getBillingPeriod(): int

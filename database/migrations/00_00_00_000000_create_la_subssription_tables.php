@@ -58,7 +58,7 @@ return new class extends Migration
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Product::class, 'plan_id');
             $table->timestamp("start_at")->nullable();
             $table->timestamp("end_at")->nullable();
-            $table->timestamp("supersede_at")->nullable();
+            $table->timestamp("suppressed_at")->nullable();
             $table->timestamp("canceled_at")->nullable();
             $table->timestamp("billing_period")->default(1);
             $table->timestamps();

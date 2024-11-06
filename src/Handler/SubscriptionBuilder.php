@@ -5,14 +5,14 @@ namespace Aldeebhasan\LaSubscription\Handler;
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Exceptions\SubscriptionRequiredExp;
 use Aldeebhasan\LaSubscription\Models\Subscription;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 class SubscriptionBuilder
 {
     private ?ContractUI $plan = null;
-    private ?string $startDate = null;
-    private ?string $endDate = null;
+    private string|CarbonInterface|null $startDate = null;
+    private string|CarbonInterface|null $endDate = null;
     private int $period = 1;
 
     public static function make(Model $subscriber): self
@@ -31,28 +31,28 @@ class SubscriptionBuilder
         return $this;
     }
 
-    public function setStartDate(string $date): self
+    public function setStartDate(string|CarbonInterface|null $date): self
     {
         $this->startDate = $date;
 
         return $this;
     }
 
-    public function getStartDate(): string
+    public function getStartDate(): CarbonInterface
     {
-        return $this->startDate ?? now()->toDateTimeString();
+        return carbonParse($this->startDate ?? now());
     }
 
-    public function setEndDate(string $date): self
+    public function setEndDate(string|CarbonInterface|null $date): self
     {
         $this->endDate = $date;
 
         return $this;
     }
 
-    public function getEndDate(): string
+    public function getEndDate(): CarbonInterface
     {
-        return $this->endDate ?: Carbon::parse($this->getStartDate())->addMonths($this->period)->toDateTimeString();
+        return carbonParse($this->endDate ?: $this->getStartDate()->addMonths($this->period));
     }
 
     public function setPeriod(int $period): self
@@ -65,7 +65,7 @@ class SubscriptionBuilder
     public function getPeriod(): int
     {
         return $this->endDate
-            ? ceil(Carbon::parse($this->getStartDate())->diffInMonths($this->getStartDate()))
+            ? ceil($this->getStartDate()->diffInMonths($this->getEndDate()))
             : $this->period;
     }
 
@@ -76,7 +76,7 @@ class SubscriptionBuilder
     {
         throw_if(!$this->plan, SubscriptionRequiredExp::class);
 
-        /** @phpstan-ignore-next-line  */
+        /* @phpstan-ignore-next-line */
         return $this->subscriber->subscriptions()->create([
             'plan_id' => $this->plan->getKey(),
             'start_at' => $this->getStartDate(),

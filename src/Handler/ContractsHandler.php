@@ -9,8 +9,8 @@ use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContractTransaction;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +31,7 @@ readonly class ContractsHandler
     public function install(
         ContractUI $item,
         Model $causative,
-        ?string $startAt = null,
+        string|CarbonInterface|null $startAt = null,
         ?int $period = null
     ): self {
         $contract = $this->getContract($item, $startAt, $period);
@@ -69,7 +69,7 @@ readonly class ContractsHandler
 
     private function getContract(
         ContractUI $item,
-        ?string $startAt = null,
+        string|CarbonInterface|null $startAt = null,
         ?int $period = null
     ): SubscriptionContract {
         $contractItem = $this->subscription->contracts()->firstWhere('code', $item->getCode());
@@ -92,7 +92,7 @@ readonly class ContractsHandler
     private function logTransaction(
         SubscriptionContract $contract,
         Model $causative,
-        ?string $startAt = null,
+        string|CarbonInterface|null $startAt = null,
         ?int $period = null,
         ?TransactionTypeEnum $type = null,
     ): SubscriptionContractTransaction {
@@ -111,14 +111,14 @@ readonly class ContractsHandler
     /**
      * @return array<string>
      */
-    private function getDateRange(?string $startAt = null, ?int $period = null): array
+    private function getDateRange(string|CarbonInterface|null $startAt = null, ?int $period = null): array
     {
-        $startAt ??= now()->toDateTimeString();
+        $startAt = $startAt ? carbonParse($startAt) : now();
         $endAt = $period
-            ? Carbon::parse($startAt)->addMonths($period)->toDateTimeString()
-            : $this->subscription->end_at->toDateTimeString();
+            ? $startAt->clone()->addMonths($period)
+            : $this->subscription->end_at;
 
-        return [$startAt, $endAt];
+        return [$startAt->toDateTimeString(), $endAt->toDateTimeString()];
     }
 
     public function sync(): void

@@ -3,7 +3,6 @@
 namespace Aldeebhasan\LaSubscription\Traits;
 
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
-use Aldeebhasan\LaSubscription\Concerns\SubscriberUI;
 use Aldeebhasan\LaSubscription\Enums\ConsumptionTypeEnum;
 use Aldeebhasan\LaSubscription\Exceptions\FeatureNotFoundExp;
 use Aldeebhasan\LaSubscription\Exceptions\FeatureQuotaLimitExp;
@@ -15,18 +14,23 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
-/** @property Subscription|null $subscription */
+/** @property Subscription|null $lastSubscription */
 trait HasSubscription
 {
     protected ?Collection $loadedSubscriptionQuotas = null;
+    protected ?Subscription $subscription = null;
 
     public function getSubscription(bool $fresh = false): ?Subscription
     {
-        if ($fresh || !$this->relationLoaded('subscription')) {
-            $this->load('subscription');
+        if (!is_null($this->subscription) && !$fresh) {
+            return $this->subscription;
         }
 
-        return $this->subscription;
+        if (!$this->relationLoaded('lastSubscription') || $fresh) {
+            $this->load('lastSubscription');
+        }
+
+        return $this->subscription = $this->lastSubscription;
     }
 
     /** @return  Collection<SubscriptionQuota> */
@@ -49,7 +53,7 @@ trait HasSubscription
         return empty($this->getFeature($featureName));
     }
 
-    public function subscription(): MorphOne
+    public function lastSubscription(): MorphOne
     {
         return $this->morphOne(Subscription::class, 'subscriber')->ofMany("start_at", 'MAX');
     }
@@ -66,7 +70,6 @@ trait HasSubscription
 
     public function subscriptionHandler(): LaSubscription
     {
-        /* @var  SubscriberUI $this */
         return LaSubscription::make($this);
     }
 
