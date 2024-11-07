@@ -34,7 +34,7 @@ it('can add plugin to the current subscription', function () {
     expect($subscriber->hasPlugin($plugin->code))->toBeTrue();
 });
 
-it('can cancel plugin to the current subscription', function () {
+it('can cancel plugin in the current subscription', function () {
     $plan = Product::factory()->create();
     $subscriber = User::factory()->create();
     $plugin = Product::factory()->create();

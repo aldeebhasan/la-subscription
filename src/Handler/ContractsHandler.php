@@ -148,7 +148,7 @@ readonly class ContractsHandler
             $consumed = $feature->isConsumable()
                 ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
                     ->valid($this->subscription->end_at->subMonths($this->subscription->getBillingPeriod()), $this->subscription->end_at)
-                    ->sum(DB::raw("IF(type = 'increase',consumed,-consumed)"))
+                    ->sum(DB::raw("CASE WHEN type = 'increase' THEN consumed ELSE -consumed END"))
                 : 0;
             $quota = $quota ?: 0;
             $this->subscription->quotas()->create([

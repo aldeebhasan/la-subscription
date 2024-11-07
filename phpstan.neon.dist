@@ -10,6 +10,7 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+    treatPhpDocTypesAsCertain: false
     universalObjectCratesClasses:
         - Aldeebhasan\LaSubscription\Models\LaModel
     ignoreErrors:

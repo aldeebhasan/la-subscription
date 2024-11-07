@@ -10,7 +10,7 @@ trait ValidTrait
     {
         $graceDays = config('subscription.grace_period', 0);
 
-        return $this->start_at->lte(now()) && (is_null($this->end_at) || $this->end_at->addDays($graceDays)->gte(now()));
+        return (!$this->start_at || $this->start_at->lte(now())) && (is_null($this->end_at) || $this->end_at->addDays($graceDays)->gte(now()));
     }
 
     public function scopeValid(Builder $query): Builder

@@ -48,7 +48,7 @@ trait HasSubscription
         return $this->loadedSubscriptionQuotas = $this->getSubscription()?->quotas ?? collect();
     }
 
-    protected function getFeature(string $code): ?SubscriptionQuota
+    public function getFeature(string $code): ?SubscriptionQuota
     {
         return $this->getSubscriptionQuotas()->firstWhere('code', $code);
     }
@@ -102,7 +102,7 @@ trait HasSubscription
     {
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);
-            if (!$quota || !$quota->valid()) {
+            if (!$quota || !$quota->isActive()) {
                 return false;
             }
         }
@@ -115,7 +115,7 @@ trait HasSubscription
         $canUse = false;
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);
-            $canUse = $canUse || ($quota && $quota->valid());
+            $canUse = $canUse || ($quota && $quota->isActive());
         }
 
         return $canUse;
@@ -145,7 +145,7 @@ trait HasSubscription
     /**
      * @throws \Throwable
      */
-    public function unConsume(string $code, float $amount = 1): void
+    public function retrieve(string $code, float $amount = 1): void
     {
         $quota = $this->getFeature($code);
 
@@ -175,7 +175,7 @@ trait HasSubscription
             return max($quota->consumed, 0);
         }
 
-        return 0;
+        return 0.0;
     }
 
     /**
