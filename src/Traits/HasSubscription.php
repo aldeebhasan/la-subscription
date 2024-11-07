@@ -98,8 +98,20 @@ trait HasSubscription
         return LaSubscription::make($this);
     }
 
+    /**
+     * @throws \Throwable
+     */
+    public function setUnlimitedAccess(bool $value = true): void
+    {
+        $this->subscriptionHandler()->setUnlimitedAccess($value);
+    }
+
     public function canConsume(string|array $codes): bool
     {
+        if ($this->getSubscription()->isUnlimited()) {
+            return true;
+        }
+
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);
             if (!$quota || !$quota->isActive()) {
@@ -112,6 +124,10 @@ trait HasSubscription
 
     public function canConsumeAny(string|array $codes): bool
     {
+        if ($this->getSubscription()->isUnlimited()) {
+            return true;
+        }
+
         $canUse = false;
         foreach (Arr::wrap($codes) as $code) {
             $quota = $this->getFeature($code);

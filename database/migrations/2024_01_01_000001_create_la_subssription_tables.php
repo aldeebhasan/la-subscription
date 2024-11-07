@@ -56,6 +56,7 @@ return new class extends Migration
             $table->id();
             $table->morphs("subscriber");
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Product::class, 'plan_id');
+            $table->boolean("unlimited")->default(false);
             $table->timestamp("start_at")->nullable();
             $table->timestamp("end_at")->nullable();
             $table->timestamp("suppressed_at")->nullable();

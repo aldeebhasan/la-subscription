@@ -24,7 +24,7 @@ class Subscription extends LaModel
 {
     use ValidTrait;
 
-    protected $fillable = ['subscriber_type', 'subscriber_id', 'plan_id', 'start_at', 'end_at', 'suppressed_at', 'canceled_at', 'billing_period'];
+    protected $fillable = ['subscriber_type', 'subscriber_id', 'plan_id', 'start_at', 'end_at', 'suppressed_at', 'canceled_at', 'billing_period', 'unlimited'];
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
@@ -55,6 +55,11 @@ class Subscription extends LaModel
     public function consumptions(): HasMany
     {
         return $this->hasMany(FeatureConsumption::class);
+    }
+
+    public function isUnlimited(): bool
+    {
+        return (bool)$this->unlimited;
     }
 
     public function isCanceled(): bool

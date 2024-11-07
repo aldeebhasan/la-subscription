@@ -136,3 +136,19 @@ it('can resume current canceled subscription', function () {
     expect($subscription->isActive())->toBeTrue();
     expect($subscription->end_at->toDateString())->toBe(now()->addMonths(12)->toDateString());
 });
+
+it('can give unlimited access', function () {
+    $plan = Product::factory()->create();
+    $subscriber = User::factory()->create();
+
+    LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now(), 12)
+        ->cancel(now()->addMonth())
+        ->getSubscription();
+
+    $subscriber->setUnlimitedAccess(true);
+    expect($subscriber->getSubscription()->isUnlimited())->toBeTrue();
+
+    $subscriber->setUnlimitedAccess(false);
+    expect($subscriber->getSubscription()->isUnlimited())->toBeFalse();
+});

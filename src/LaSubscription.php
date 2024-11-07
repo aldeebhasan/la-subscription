@@ -145,6 +145,15 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
+    public function setUnlimitedAccess(bool $value = true): void
+    {
+        throw_if(!$this->subscription, SubscriptionRequiredExp::class);
+        $this->subscription->update(['unlimited' => $value]);
+    }
+
+    /**
+     * @throws \Throwable
+     */
     public function renew(?int $period = null, bool $withPlugins = true): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);

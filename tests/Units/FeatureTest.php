@@ -117,3 +117,15 @@ it('consume and retrieve unlimited future ', function () {
     expect($featureQuota->consumed)->toBe((float)0);
     expect($subscriber->getCurrentConsumption($plan->features->first()->code))->toBe((float)0);
 });
+
+
+it('can use feature when subscription is unlimited', function () {
+    $plan = Product::factory()->create();
+    $subscriber = User::factory()->create();
+
+    LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now(), 12)
+        ->setUnlimitedAccess();
+
+    expect($subscriber->canConsume("any-feature"))->toBeTrue();
+});
