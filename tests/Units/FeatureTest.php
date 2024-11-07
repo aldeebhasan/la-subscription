@@ -19,6 +19,19 @@ it('can consume unlimited future in subscription', function () {
     expect($subscriber->canConsume($plan->features->first()->code))->toBeTrue();
 });
 
+it('can consume unlimited future in addon', function () {
+    $subscriber = User::factory()->create();
+    $plan = Product::factory()->withFeatures(state: ['limited' => false])->create();
+    $addon = Product::factory()->withFeatures(state: ['limited' => false])->create();
+
+    LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now())
+        ->addPlugin($addon)
+        ->getSubscription();
+
+    expect($subscriber->canConsume($addon->features->first()->code))->toBeTrue();
+});
+
 it('can consume limited future in subscription', function () {
     $subscriber = User::factory()->create();
     $plan = Product::factory()->withFeatures(state: ['limited' => true], pivot: ['value' => 1])->create();
@@ -28,6 +41,19 @@ it('can consume limited future in subscription', function () {
         ->getSubscription();
 
     expect($subscriber->canConsume($plan->features->first()->code))->toBeTrue();
+});
+
+it('can consume limited future in addons', function () {
+    $subscriber = User::factory()->create();
+    $plan = Product::factory()->withFeatures(state: ['limited' => false])->create();
+    $addon = Product::factory()->withFeatures(state: ['limited' => true], pivot: ['value' => 1])->create();
+
+    LaSubscription::make($subscriber)
+        ->subscribeTo($plan, now())
+        ->addPlugin($addon)
+        ->getSubscription();
+
+    expect($subscriber->canConsume($addon->features->first()->code))->toBeTrue();
 });
 
 it('can not consume limited future with no quota', function () {
