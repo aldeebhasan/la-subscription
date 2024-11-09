@@ -79,13 +79,14 @@ class LaSubscription
     /**
      * @throws \Throwable
      */
-    public function switchTo(ContractUI $item, string|CarbonInterface|null $startAt = null, ?int $period = null): self
+    public function switchTo(ContractUI $item, string|CarbonInterface|null $startAt = null, ?int $period = null, bool $withPlugins = true): self
     {
         throw_if(!$this->subscription, SubscriptionRequiredExp::class);
         throw_if($this->subscription->plan_id === $item->getKey(), SwitchToSamePlanExp::class);
 
         $startAt ??= $this->subscription->start_at;
         $this->suppress($startAt);
+        $plugins = $this->contractsHandler->getActivePlugin();
         $this->subscription = SubscriptionBuilder::make($this->subscriber)
             ->setPlan($item)
             ->setStartDate($startAt)
@@ -93,6 +94,11 @@ class LaSubscription
             ->create();
 
         $this->reload();
+
+        if ($withPlugins) {
+            $plugins->each(fn(SubscriptionContract $contract) => $this->contractsHandler->install($contract->product, $this->subscription->subscriber, $startAt));
+        }
+
         $this->refresh();
 
         event(new SubscriptionSwitched($this->subscription));

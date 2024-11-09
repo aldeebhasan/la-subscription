@@ -37,10 +37,10 @@ class SubscriptionQuota extends LaModel
         return (!$this->limited || ($this->consumed < $this->quota)) && $this->isValid();
     }
 
-    public function scopeActive(Builder $builder): Builder
+    public function scopeActive(Builder $query): Builder
     {
         /* @phpstan-ignore-next-line  */
-        return $builder->valid()->where(function (Builder $query) {
+        return $query->valid()->where(function (Builder $query) {
             $query->where('limited', false)
                 ->orWhere(function (Builder $limited) {
                     $limited->where('limited', true)

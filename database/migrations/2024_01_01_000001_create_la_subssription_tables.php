@@ -21,9 +21,9 @@ return new class extends Migration
             $table->string("name");
             $table->string("code")->unique();
             $table->text("description");
-            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class);
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class)->nullable();
             $table->boolean('active')->default(true);
-            $table->enum("type", ['recurring', 'non-recurring']);
+            $table->enum("type", ['recurring', 'non-recurring'])->default('recurring');
             $table->double("price")->default(0);
             $table->double("price_yearly")->default(0);
             $table->timestamps();
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string("name");
             $table->string("code")->unique();
             $table->text("description");
-            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class);
+            $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class)->nullable();
             $table->boolean('active')->default(true);
             $table->boolean('limited')->default(false);
             $table->timestamps();

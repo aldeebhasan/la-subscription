@@ -2,6 +2,7 @@
 
 namespace Aldeebhasan\LaSubscription\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Feature extends LaModel
@@ -22,5 +23,15 @@ class Feature extends LaModel
     public function isConsumable(): bool
     {
         return (bool)$this->limited;
+    }
+
+    public function isActive(): bool
+    {
+        return (bool)$this->active;
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('active', true);
     }
 }
