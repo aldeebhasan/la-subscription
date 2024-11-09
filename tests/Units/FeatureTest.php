@@ -54,7 +54,7 @@ it('can consume limited future in addons', function () {
         ->getSubscription();
 
     expect($subscriber->canConsume($addon->features->first()->code))->toBeTrue();
-});
+})->group('f1');
 
 it('can not consume limited future with no quota', function () {
     $subscriber = User::factory()->create();
@@ -117,7 +117,6 @@ it('consume and retrieve unlimited future ', function () {
     expect($featureQuota->consumed)->toBe((float)0);
     expect($subscriber->getCurrentConsumption($plan->features->first()->code))->toBe((float)0);
 });
-
 
 it('can use feature when subscription is unlimited', function () {
     $plan = Product::factory()->create();

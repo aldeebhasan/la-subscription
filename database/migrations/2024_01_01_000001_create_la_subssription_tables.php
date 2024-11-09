@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create("{$prefix}_groups", function (Blueprint $table) {
             $table->id();
             $table->string("name");
-            $table->enum("type", ['plan', 'product', 'feature']);
+            $table->enum("type", ['plan', 'plugin', 'feature']);
             $table->timestamps();
             $table->softDeletes();
         });

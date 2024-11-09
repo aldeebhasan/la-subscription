@@ -155,6 +155,7 @@ trait HasSubscription
                 'consumed' => $amount,
                 'type' => ConsumptionTypeEnum::INC,
             ]);
+            $this->subscriptionHandler()->refresh();
         }
     }
 
@@ -175,6 +176,7 @@ trait HasSubscription
                 'consumed' => $amount,
                 'type' => ConsumptionTypeEnum::DEC,
             ]);
+            $this->subscriptionHandler()->refresh();
         }
     }
 

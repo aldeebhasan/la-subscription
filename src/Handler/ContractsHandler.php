@@ -5,10 +5,11 @@ namespace Aldeebhasan\LaSubscription\Handler;
 use Aldeebhasan\LaSubscription\Concerns\ContractUI;
 use Aldeebhasan\LaSubscription\Enums\BillingCycleEnum;
 use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
+use Aldeebhasan\LaSubscription\Models\ContractTransaction;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
-use Aldeebhasan\LaSubscription\Models\ContractTransaction;
+use Aldeebhasan\LaSubscription\Models\SubscriptionQuota;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -123,46 +124,57 @@ readonly class ContractsHandler
 
     public function sync(): void
     {
-        $this->subscription->quotas()->forceDelete();
-
-        $this->subscription->plan->getFeatures()->each(function (Feature $feature, int|string $_) {
+        $quotas = [];
+        $this->subscription->plan->getFeatures()->each(function (Feature $feature, int|string $_) use (&$quotas) {
             if ($feature->pivot->active ?? false) {
-                $this->syncFeature($feature, $feature->pivot->value, false);
+                $quotas[$feature->code] = [
+                    'feature' => $feature,
+                    'quota' => $feature->isConsumable() ? (float)$feature->pivot->value : 0,
+                    'end_at' => $this->subscription->end_at,
+                ];
             }
         });
-
         $this->subscription->contracts()->with('product')->valid()
-            ->get()->each(function (SubscriptionContract $contract) {
-                $contract->product->getFeatures()->each(function (Feature $feature, int|string $_) use ($contract) {
+            ->get()->each(function (SubscriptionContract $contract) use (&$quotas) {
+                $features = $contract->product->getFeatures();
+                /** @var Feature $feature */
+                foreach ($features as $feature) {
                     if ($feature->pivot->active ?? false) {
-                        $this->syncFeature($feature, $feature->pivot->value, $contract->product->isRecurring());
+                        $oldQuota = (float)($quotas[$feature->code]['quota'] ?? 0);
+                        $quotas[$feature->code] = [
+                            'feature' => $feature,
+                            'quota' => $oldQuota + ($feature->isConsumable() ? (float)$feature->pivot->value : 0),
+                            'end_at' => $quotas[$feature->code]['end_at'] ?? ($contract->product->isRecurring() ? $this->subscription->end_at : null),
+                        ];
                     }
-                });
+                }
             });
+
+        $ids = [];
+        foreach ($quotas as $quota) {
+            $quota = $this->syncFeature($quota['feature'], $quota['quota'], $quota['end_at']);
+            $ids[] = $quota->getKey();
+        }
+
+        $this->subscription->quotas()->whereKeyNot($ids)->delete();
     }
 
-    private function syncFeature(Feature $feature, ?int $quota = null, bool $isRecurring = false): void
+    private function syncFeature(Feature $feature, int $quota, string|CarbonInterface|null $endAt): SubscriptionQuota
     {
-        $old = $this->subscription->quotas()->where('code', $feature->code)->first();
-        if (!$old) {
-            $consumed = $feature->isConsumable()
-                ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
-                    ->valid($this->subscription->end_at->subMonths($this->subscription->getBillingPeriod()), $this->subscription->end_at)
-                    ->sum(DB::raw("CASE WHEN type = 'increase' THEN consumed ELSE -consumed END"))
-                : 0;
-            $quota = $quota ?: 0;
-            $this->subscription->quotas()->create([
-                'code' => $feature->code,
-                'limited' => $feature->isConsumable(),
-                'feature_id' => $feature->getKey(),
-                'quota' => $feature->isConsumable() ? $quota : 0,
-                'consumed' => $consumed,
-                'end_at' => $isRecurring ? $this->subscription->end_at : null,
-            ]);
-        } else {
-            $old->update([
-                'quota' => $feature->isConsumable() ? ($old->quota + $quota) : 0,
-            ]);
-        }
+        $consumed = $feature->isConsumable()
+            ? $this->subscription->consumptions()->where('feature_id', $feature->getKey())
+                ->valid($this->subscription->end_at->subMonths($this->subscription->getBillingPeriod()), $this->subscription->end_at)
+                ->sum(DB::raw("CASE WHEN type = 'increase' THEN consumed ELSE -consumed END"))
+            : 0;
+
+        return $this->subscription->quotas()->updateOrCreate([
+            'code' => $feature->code,
+        ], [
+            'limited' => $feature->isConsumable(),
+            'feature_id' => $feature->getKey(),
+            'quota' => $feature->isConsumable() ? $quota : 0,
+            'consumed' => $consumed ?: 0,
+            'end_at' => $endAt,
+        ]);
     }
 }
