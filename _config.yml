@@ -1,0 +1,4 @@
+theme: jekyll-theme-cayman
+title: LA SUBSCRIPTION Package
+description: LA SUBSCRIPTION is a robust package designed to simplify the implementation and management of subscription-based services within Laravel applications. It provides a flexible approach to handle various
+  subscription plans, making it ideal for SaaS applications, membership sites, and any system requiring recurring billing.
