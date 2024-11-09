@@ -72,11 +72,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Aldeebhasan\\LaSubssription\\LaSubssriptionServiceProvider"
-            ],
-            "aliases": {
-                "LaSubssription": "Aldeebhasan\\LaSubssription\\Facades\\LaSubssription"
-            }
+                "Aldeebhasan\\LaSubscription\\LaSubscriptionServiceProvider"
+            ]
         }
     },
     "minimum-stability": "dev",
