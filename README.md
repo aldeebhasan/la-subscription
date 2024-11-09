@@ -139,8 +139,8 @@ class PlanSeeder extends Seeder
             'description'  => 'Description of starter plan',
             'code'         => 'starter',
             'group_id'     => $group->id,
-            'price'        => 15;
-            'price_yearly' => 12;
+            'price'        => 15,
+            'price_yearly' => 12,
         ]);
         
         $feature_1 = Feature::whereCode('users')->first();

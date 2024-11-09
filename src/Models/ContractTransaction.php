@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string $start_at
  * @property string $end_at
  */
-class SubscriptionContractTransaction extends LaModel
+class ContractTransaction extends LaModel
 {
     protected $fillable = ['subscription_contract_id', 'type', 'start_at', 'end_at', 'causative_type', 'causative_id'];
     protected $casts = [

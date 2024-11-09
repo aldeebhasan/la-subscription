@@ -3,13 +3,13 @@
 namespace Aldeebhasan\LaSubscription\Database\Factories;
 
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
-use Aldeebhasan\LaSubscription\Models\SubscriptionContractTransaction;
+use Aldeebhasan\LaSubscription\Models\ContractTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 
 class SubscriptionContractTransactionFactory extends Factory
 {
-    protected $model = SubscriptionContractTransaction::class;
+    protected $model = ContractTransaction::class;
 
     public function definition(): array
     {

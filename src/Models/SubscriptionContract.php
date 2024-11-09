@@ -38,7 +38,7 @@ class SubscriptionContract extends LaModel
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(SubscriptionContractTransaction::class);
+        return $this->hasMany(ContractTransaction::class);
     }
 
     public function product(): MorphTo

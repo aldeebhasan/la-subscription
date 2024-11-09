@@ -8,7 +8,7 @@ use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Subscription;
 use Aldeebhasan\LaSubscription\Models\SubscriptionContract;
-use Aldeebhasan\LaSubscription\Models\SubscriptionContractTransaction;
+use Aldeebhasan\LaSubscription\Models\ContractTransaction;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -95,10 +95,10 @@ readonly class ContractsHandler
         string|CarbonInterface|null $startAt = null,
         ?int $period = null,
         ?TransactionTypeEnum $type = null,
-    ): SubscriptionContractTransaction {
+    ): ContractTransaction {
         [$startAt, $endAt] = $this->getDateRange($startAt, $period);
 
-        /* @var SubscriptionContractTransaction */
+        /* @var ContractTransaction */
         return $contract->transactions()->create([
             'type' => $type ?: ($contract->transactions()->exists() ? TransactionTypeEnum::RENEW : TransactionTypeEnum::NEW),
             'start_at' => $startAt,

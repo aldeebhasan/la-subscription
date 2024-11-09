@@ -20,7 +20,7 @@ return new class extends Migration
             $table->id();
             $table->string("name");
             $table->string("code")->unique();
-            $table->text("description");
+            $table->text("description")->nullable();
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class)->nullable();
             $table->boolean('active')->default(true);
             $table->enum("type", ['recurring', 'non-recurring'])->default('recurring');
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->id();
             $table->string("name");
             $table->string("code")->unique();
-            $table->text("description");
+            $table->text("description")->nullable();
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Group::class)->nullable();
             $table->boolean('active')->default(true);
             $table->boolean('limited')->default(false);
@@ -61,7 +61,7 @@ return new class extends Migration
             $table->timestamp("end_at")->nullable();
             $table->timestamp("suppressed_at")->nullable();
             $table->timestamp("canceled_at")->nullable();
-            $table->timestamp("billing_period")->default(1);
+            $table->unsignedInteger("billing_period")->default(1);
             $table->timestamps();
             $table->softDeletes();
         });
@@ -70,7 +70,7 @@ return new class extends Migration
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\Subscription::class);
             $table->string("code");
             $table->morphs("product");
-            $table->integer("number")->default(1);
+            $table->unsignedInteger("number")->default(1);
             $table->timestamp("start_at");
             $table->timestamp("end_at")->nullable();
             $table->boolean("auto_renew")->default(true);
@@ -79,7 +79,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create("{$prefix}_subscription_contract_transactions", function (Blueprint $table) {
+        Schema::create("{$prefix}_contract_transactions", function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Aldeebhasan\LaSubscription\Models\SubscriptionContract::class);
             $table->string("type");
@@ -118,7 +118,7 @@ return new class extends Migration
     {
         $prefix = config('subscription.prefix');
         Schema::dropIfExists("{$prefix}_subscription_consumptions");
-        Schema::dropIfExists("{$prefix}_subscription_contract_transactions");
+        Schema::dropIfExists("{$prefix}_contract_transactions");
         Schema::dropIfExists("{$prefix}_subscription_contracts");
         Schema::dropIfExists("{$prefix}_subscriptions");
         Schema::dropIfExists("{$prefix}_product_feature");
