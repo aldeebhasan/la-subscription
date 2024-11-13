@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 
 
 if (!function_exists('subscription')) {
@@ -69,8 +70,13 @@ if (!function_exists('js')) {
             throw new RuntimeException('Unable to load the  dashboard JavaScript.');
         }
 
+        $variable = Js::from([
+            'path' => config('subscription.path')
+        ]);
+
         return new HtmlString(<<<HTML
             <script type="module">
+                window.Global = {$variable};
                 {$js}
             </script>
             HTML

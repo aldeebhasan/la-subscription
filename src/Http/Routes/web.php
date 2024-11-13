@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix("subscriptions")
     ->name('subscriptions')
     ->group(function () {
-        Route::redirect('', 'subscriptions/dashboard');
-        Route::get('dashboard', [SubscriptionController::class, 'dashboard'])->name('dashboard');
+        Route::get('{view?}', fn() => view('la-subscription::app'))
+            ->where('view', '.*')
+            ->name('index');
     });
