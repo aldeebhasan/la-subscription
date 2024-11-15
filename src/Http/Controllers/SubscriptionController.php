@@ -2,12 +2,11 @@
 
 namespace Aldeebhasan\LaSubscription\Http\Controllers;
 
-class SubscriptionController
+use Aldeebhasan\LaSubscription\Http\Resources\SubscriptionResource;
+use Aldeebhasan\LaSubscription\Models\Subscription;
+
+class SubscriptionController extends LaController
 {
-
-    public function dashboard()
-    {
-        return view('la-subscription::dashboard');
-    }
-
+    protected string $model = Subscription::class;
+    protected ?string $modelResource = SubscriptionResource::class;
 }

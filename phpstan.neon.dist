@@ -13,5 +13,6 @@ parameters:
     treatPhpDocTypesAsCertain: false
     universalObjectCratesClasses:
         - Aldeebhasan\LaSubscription\Models\LaModel
+        - Aldeebhasan\NaiveCrud\Http\Resources\BaseResource
     ignoreErrors:
         -  identifier: missingType.generics

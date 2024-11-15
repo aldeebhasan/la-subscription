@@ -3,6 +3,53 @@
 @tailwind utilities;
 
 
-.name{
-    @apply  lg:text-2xl
+.nav-item {
+    @apply transition duration-100 hover:bg-gray-700 hover:text-white rounded p-2  my-1
+}
+
+.router-link-active .nav-item {
+    @apply bg-gray-700 text-white
+}
+
+
+.table {
+    @apply min-w-full text-start text-sm font-light  dark:text-white relative;
+}
+
+.table.loading::after {
+    content: 'Loading...';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.table thead {
+    @apply border-b border-neutral-200 bg-gray-700 font-medium text-white dark:border-white/10
+}
+
+.table > thead th {
+    @apply px-4 py-2
+}
+
+.table  tr:not(:first-child) {
+    @apply border-b border-neutral-200 dark:border-white/10 hover:bg-neutral-200 bg-white
+}
+
+.table td:first-child ,.table th:first-child {
+    @apply text-start
+}
+
+.table td {
+    @apply whitespace-nowrap  px-4 py-2 text-center
+}
+
+.table td .action {
+    @apply text-xs border-2 border-gray-200 hover:border-black px-2 py-1 rounded-md transition duration-200
 }

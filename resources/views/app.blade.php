@@ -20,12 +20,11 @@
 <body class="font-sans antialiased">
 <div class="min-h-screen bg-gray-100">
     <!-- Page Content -->
-    <div class="flex" id="app">
-
-        <div class="w-30 border">
+    <div class="flex flex-row" id="app">
+        <div class="basis-1/5 h-screen p-2 bg-gray-200 bg-clip-padding border-4 border-gray-400 border-dashed ">
             @include('la-subscription::navigation')
         </div>
-        <div class="flex-grow">
+        <div class="flex-grow h-screen overflow-y-auto">
             <router-view></router-view>
         </div>
 

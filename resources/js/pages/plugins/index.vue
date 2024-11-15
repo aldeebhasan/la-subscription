@@ -12,7 +12,7 @@ onMounted(() => load())
 
 function load(link = "") {
     loading.value = true;
-    globals.$http.get(link ? link : Global.basePath + "/api/plans")
+    globals.$http.get(link ? link : Global.basePath + "/api/plugins")
         .then(response => {
             response = response.data;
             data.value = response.data;
@@ -22,7 +22,9 @@ function load(link = "") {
 </script>
 
 <template>
-    <breadcrumb title="Plans"/>
+
+    <breadcrumb title="Plugins"/>
+
     <v-table :loading="loading" :count="data.items?.length">
         <thead>
         <tr>
@@ -30,6 +32,7 @@ function load(link = "") {
             <th scope="col">Code</th>
             <th scope="col">Active</th>
             <th scope="col">Price</th>
+            <th scope="col">Group</th>
             <th scope="col">Actions</th>
         </tr>
         </thead>
@@ -38,10 +41,15 @@ function load(link = "") {
             <td>{{ item.code }}</td>
             <td>{{ item.active }}</td>
             <td>{{ item.price }}</td>
-            <td><a class="action" :href="'plans/'+item.id"> Edit</a></td>
+            <td>{{ item.group }}</td>
+            <td><a class="action" :href="'plugins/'+item.id"> Edit</a></td>
         </tr>
     </v-table>
-
     <pagination :links="data.meta?.links ?? []" @navigate="load"></pagination>
+
 </template>
 
+<style scoped>
+
+
+</style>

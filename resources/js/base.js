@@ -1,16 +1,13 @@
 export default {
 
     computed: {
-
+        Global() {
+            return window.Global;
+        },
     },
 
     methods: {
-        /**
-         * Format the given date with respect to timezone.
-         */
-        hello() {
-            alert('hello');
-        },
+
     },
 
 }
