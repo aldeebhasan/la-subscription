@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
 
-
 if (!function_exists('subscription')) {
     function subscription(Model $model): ?Subscription
     {
@@ -44,20 +43,18 @@ if (!function_exists('carbonParse')) {
     }
 }
 
-
 if (!function_exists('css')) {
     function css(): Htmlable
     {
-        if (($light = @file_get_contents(__DIR__ . '/../../dist/styles.css')) === false) {
-            throw new RuntimeException('Unable to load the dashboard light CSS.');
-        }
+        //        if (($light = @file_get_contents(__DIR__ . '/../../dist/styles.css')) === false) {
+        //            throw new RuntimeException('Unable to load the dashboard light CSS.');
+        //        }
 
         if (($app = @file_get_contents(__DIR__ . '/../../dist/app.css')) === false) {
             throw new RuntimeException('Unable to load the dashboard CSS.');
         }
 
         return new HtmlString(<<<HTML
-            <style data-scheme="light">{$light}</style>
             <style>{$app}</style>
             HTML
         );
@@ -71,7 +68,7 @@ if (!function_exists('js')) {
         }
 
         $variable = Js::from([
-            'path' => config('subscription.path')
+            'path' => config('subscription.path'),
         ]);
 
         return new HtmlString(<<<HTML

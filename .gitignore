@@ -1,6 +1,7 @@
 # Composer Related
 composer.lock
 package-lock.json
+qodana.yaml
 /vendor
 
 # Frontend Assets

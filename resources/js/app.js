@@ -5,6 +5,7 @@ import axios from 'axios';
 import router from './routes.js';
 import base from './base.js';
 import dashboard from "./pages/dashboard.vue";
+import '../css/styles.css';
 
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -14,5 +15,5 @@ app.component('example-component', ExampleComponent);
 app.component('dashboard', dashboard);
 
 app.use(router)
-    .mount('#app');
-    // .mixin(base)
+    .mount('#app')
+    .mixin(base);
