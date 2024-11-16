@@ -3,15 +3,11 @@ import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-    content: [
-        './resources/views/**/*.blade.php',
-        "./resources/**/*.{js,ts,jsx,tsx,vue}",
-    ],
-
+    content: ['./resources/**/*.{js,ts,jsx,tsx,vue,blade.php}'],
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['"Cerebri Sans"', ...defaultTheme.fontFamily.sans],
             },
         },
     },

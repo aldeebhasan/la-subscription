@@ -1,4 +1,5 @@
 import vue from '@vitejs/plugin-vue';
+import path from "path";
 
 /** @type {import('vite').UserConfig} */
 export default {
@@ -16,7 +17,8 @@ export default {
     },
     resolve: {
         alias: {
-            '@': '/resources/js',
+            '@': path.resolve(__dirname, 'resources/js'),
+            '@assets': path.resolve(__dirname, 'public/assets')
         },
     },
 };

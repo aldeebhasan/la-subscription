@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import 'buttons.css';
+@import 'form.css';
 
 
 .nav-item {
@@ -38,11 +40,11 @@
     @apply px-4 py-2
 }
 
-.table  tr:not(:first-child) {
+.table tr:not(:first-child) {
     @apply border-b border-neutral-200 dark:border-white/10 hover:bg-neutral-200 bg-white
 }
 
-.table td:first-child ,.table th:first-child {
+.table td:first-child, .table th:first-child {
     @apply text-start
 }
 
@@ -52,4 +54,9 @@
 
 .table td .action {
     @apply text-xs border-2 border-gray-200 hover:border-black px-2 py-1 rounded-md transition duration-200
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus, .form-multiselect:focus {
+    --tw-ring-color: #7e7e7e;
+    border-color: #999;
 }

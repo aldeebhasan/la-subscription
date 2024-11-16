@@ -2,9 +2,7 @@
     <header class="flex item-center justify-between bg-gray-200 px-2 py-4">
         <div class="text-lg">{{ title }}</div>
         <div>
-            <router-link class="bg-gray-700 text-white rounded px-2 py-1" to="/dashboard">
-               <span class="text-sm" >  Back To Dashboard</span>
-            </router-link>
+          <a href="#" class="bg-gray-700 text-white rounded px-2 py-1 text-sm" @click="$router.go(-1)">Back</a>
         </div>
     </header>
 

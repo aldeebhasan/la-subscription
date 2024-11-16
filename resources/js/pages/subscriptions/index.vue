@@ -1,9 +1,9 @@
 <script setup>
 import {onMounted, ref} from "vue";
-import breadcrumb from "../../components/Breadcrumb.vue";
-import {globals} from "../../app.js";
-import VTable from "../../components/VTable.vue";
-import Pagination from "../../components/Pagination.vue";
+import breadcrumb from "@/components/Breadcrumb.vue";
+import {globals} from "@/app.js";
+import VTable from "@/components/VTable.vue";
+import Pagination from "@/components/Pagination.vue";
 
 const data = ref({});
 const loading = ref(true);
