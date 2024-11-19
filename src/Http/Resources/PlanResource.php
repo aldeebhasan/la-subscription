@@ -28,6 +28,7 @@ class PlanResource extends BaseResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'description' => $this->description,
             'code' => $this->code,
             'active' => $this->active ? 1 : 0,
             'price' => "$this->price",

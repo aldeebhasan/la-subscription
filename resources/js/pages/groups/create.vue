@@ -7,7 +7,6 @@ import LoadingButton from "@/components/LoadingButton.vue";
 import SelectInput from "@/components/SelectInput.vue";
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Loader from "@/components/Loader.vue";
-import TextareaInput from "@/components/TextareaInput.vue";
 
 const app = getCurrentInstance()
 const router = useRouter()
@@ -18,26 +17,23 @@ const loading = ref(false);
 const form = reactive({
   data: {
     name: "",
-    description: "",
-    code: "",
-    active: 0,
-    price: "",
-    price_yearly: "",
+    type: "",
   },
   errors: {}
 });
-const features = ref([]);
 
-onMounted(() => loadItem());
+
+onMounted(() => {
+  if (id !== 'create') {
+    loadItem()
+  }
+});
 
 function loadItem() {
   loading.value = true;
-  const path = (id === 'create') ? "create" : id + "/edit";
-  globals.$http.get(Global.basePath + "/api/plans/" + path)
+  globals.$http.get(Global.basePath + "/api/groups/" + id)
     .then(response => {
-      let item = response.data.data.item;
-      form.data = item || form.data;
-      features.value = response.data.data.features;
+      form.data = response.data.data;
       loading.value = false;
     });
 }
@@ -45,7 +41,7 @@ function loadItem() {
 function submit() {
   loading.value = true;
   if (id === 'create') {
-    globals.$http.post(Global.basePath + "/api/plans", form.data)
+    globals.$http.post(Global.basePath + "/api/groups", form.data)
       .then(response => {
         loading.value = false;
         router.back();
@@ -56,7 +52,7 @@ function submit() {
         form.errors = error.response.data.errors;
       });
   } else {
-    globals.$http.put(Global.basePath + "/api/plans/" + id, form.data)
+    globals.$http.put(Global.basePath + "/api/groups/" + id, form.data)
       .then(response => {
         console.log(response);
         loading.value = false;
@@ -74,7 +70,7 @@ function submit() {
 </script>
 
 <template>
-  <breadcrumb title="Create Plans"/>
+  <breadcrumb title="Create Plugin"/>
 
   <div class="max-w-full bg-white rounded-md shadow overflow-hidden relative">
     <div class="absolute w-full h-full flex items-center justify-center z-10 bg-opacity-65 bg-gray-100" v-if="loading">
@@ -84,13 +80,9 @@ function submit() {
 
       <div class="flex flex-wrap  -mr-6 p-8">
         <text-input v-model="form.data.name" :error="form.errors.name" class="pb-2 pr-6 w-full " label="Name"/>
-        <textarea-input v-model="form.data.description" :error="form.errors.description" class="pb-2 pr-6 w-full " label="Description"/>
-        <text-input v-model="form.data.code" :error="form.errors.code" class="pb-2 pr-6 w-full " label="Code"/>
-        <text-input type="number" v-model="form.data.price" :error="form.errors.price" class="pb-2 pr-6 w-full " label="Monthly Price"/>
-        <text-input type="number" v-model="form.data.price_yearly" :error="form.errors.price_yearly" class="pb-8 pr-6 w-full " label="Yearly Price"/>
-        <select-input v-model="form.data.active" :error="form.errors.active" class="pb-2 pr-6 w-full " label="Active">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
+        <select-input v-model="form.data.type" :error="form.errors.type" class="pb-2 pr-6 w-full " label="Type">
+          <option value="plugin">Plugin</option>
+          <option value="feature">Feature</option>
         </select-input>
 
       </div>

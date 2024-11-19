@@ -2,22 +2,22 @@
 
 namespace Aldeebhasan\LaSubscription\Http\Requests;
 
-use Aldeebhasan\LaSubscription\Models\Product;
+use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\NaiveCrud\Http\Requests\BaseRequest;
 use Illuminate\Validation\Rule;
 
-class PlanForm extends BaseRequest
+class FeatureForm extends BaseRequest
 {
     /** @return array<string,mixed> */
     public function storeRules(): array
     {
         return [
+            'group_id' => ['required', 'numeric'],
             'name' => ['required', 'string'],
             'description' => ['required', 'string'],
-            'code' => ['required', 'string',  Rule::unique((new Product)->getTable())],
-            'price' => ['required', 'numeric', 'min:0'],
-            'price_yearly' => ['required', 'numeric', 'min:0'],
+            'code' => ['required', 'string',  Rule::unique((new Feature)->getTable())],
             'active' => ['required', 'boolean'],
+            'limited' => ['required', 'boolean'],
         ];
     }
 
@@ -25,7 +25,7 @@ class PlanForm extends BaseRequest
     public function updateRules(): array
     {
         $rules = $this->storeRules();
-        $rules['code'] = ['required', 'string', Rule::unique((new Product)->getTable())->ignore($this->request->get('id'))];
+        $rules['code'] = ['required', 'string', Rule::unique((new Feature)->getTable())->ignore($this->request->get('id'))];
 
         return $rules;
     }

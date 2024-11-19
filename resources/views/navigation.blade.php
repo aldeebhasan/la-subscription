@@ -8,6 +8,9 @@
             Dashboard
         </div>
     </router-link>
+    <router-link to="/groups">
+        <div class="nav-item">Grouos</div>
+    </router-link>
     <router-link to="/plans">
         <div class="nav-item">Plans</div>
     </router-link>

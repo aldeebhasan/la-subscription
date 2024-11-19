@@ -22,4 +22,19 @@ class PluginResource extends BaseResource
             'created_at' => carbonParse($this->created_at)->toDateTimeString(),
         ];
     }
+
+    /** @return array<string,mixed> */
+    public function toShowArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'code' => $this->code,
+            'active' => $this->active ? 1 : 0,
+            'price' => "$this->price",
+            'price_yearly' => "$this->price_yearly",
+        ];
+    }
 }

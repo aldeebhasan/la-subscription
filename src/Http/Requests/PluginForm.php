@@ -6,12 +6,13 @@ use Aldeebhasan\LaSubscription\Models\Product;
 use Aldeebhasan\NaiveCrud\Http\Requests\BaseRequest;
 use Illuminate\Validation\Rule;
 
-class PlanForm extends BaseRequest
+class PluginForm extends BaseRequest
 {
     /** @return array<string,mixed> */
     public function storeRules(): array
     {
         return [
+            'group_id' => ['required', 'numeric'],
             'name' => ['required', 'string'],
             'description' => ['required', 'string'],
             'code' => ['required', 'string',  Rule::unique((new Product)->getTable())],

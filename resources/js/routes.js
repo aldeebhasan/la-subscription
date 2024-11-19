@@ -1,8 +1,12 @@
 import {createRouter, createWebHistory} from "vue-router";
 import dashboard from "./pages/dashboard.vue";
+import groups from "./pages/groups/index.vue";
+import groupCreate from "./pages/groups/create.vue";
 import plans from "./pages/plans/index.vue";
-import plansCreate from "./pages/plans/create.vue";
+import planCreate from "./pages/plans/create.vue";
+import pluginCreate from "./pages/plugins/create.vue";
 import plugins from "./pages/plugins/index.vue";
+import featureCreate from "./pages/features/create.vue";
 import features from "./pages/features/index.vue";
 import subscriptions from "./pages/subscriptions/index.vue";
 
@@ -21,13 +25,21 @@ const router = createRouter({
         {
             path: '/dashboard', name: 'Dashboard', component: dashboard
         }, {
+            path: '/groups', name: 'Groups', component: groups
+        }, {
+            path: '/groups/:id', name: 'Create Group', component: groupCreate
+        }, {
             path: '/plans', name: 'Plans', component: plans
         }, {
-            path: '/plans/:planId', name: 'Create Plan', component: plansCreate
+            path: '/plans/:id', name: 'Create Plan', component: planCreate
         }, {
             path: '/plugins', name: 'Plugins', component: plugins,
         }, {
+            path: '/plugins/:id', name: 'Create Plugin', component: pluginCreate
+        }, {
             path: '/features', name: 'Features', component: features,
+        }, {
+            path: '/features/:id', name: 'Create Feature', component: featureCreate
         }, {
             path: '/subscriptions', name: 'Subscriptions', component: subscriptions,
         },]
