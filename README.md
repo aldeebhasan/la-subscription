@@ -4,6 +4,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/aldeebhasan/la-subscription.svg?style=flat-square)](https://packagist.org/packages/aldeebhasan/la-subscription)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/aldeebhasan/la-subscription/fix-php-code-style-issues.yml?branch=master&label=code%20style&style=flat-square)](https://github.com/aldeebhasan/la-subscription/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/168e47e5669c4f9da5f0a9cc4f56b294)](https://app.codacy.com/gh/aldeebhasan/la-subscription/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Total Downloads](https://img.shields.io/packagist/dt/aldeebhasan/la-subscription.svg?style=flat-square)](https://packagist.org/packages/aldeebhasan/la-subscription)
 
 </div>

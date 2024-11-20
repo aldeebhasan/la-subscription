@@ -1,5 +1,6 @@
 # Composer Related
 composer.lock
+package-lock.json
 /vendor
 
 # Frontend Assets
