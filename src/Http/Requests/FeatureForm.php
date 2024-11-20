@@ -14,7 +14,7 @@ class FeatureForm extends BaseRequest
         return [
             'group_id' => ['required', 'numeric'],
             'name' => ['required', 'string'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'code' => ['required', 'string',  Rule::unique((new Feature)->getTable())],
             'active' => ['required', 'boolean'],
             'limited' => ['required', 'boolean'],

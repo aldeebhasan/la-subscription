@@ -13,11 +13,12 @@ class PlanForm extends BaseRequest
     {
         return [
             'name' => ['required', 'string'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'code' => ['required', 'string',  Rule::unique((new Product)->getTable())],
             'price' => ['required', 'numeric', 'min:0'],
             'price_yearly' => ['required', 'numeric', 'min:0'],
             'active' => ['required', 'boolean'],
+            'features' => ['nullable', 'array'],
         ];
     }
 

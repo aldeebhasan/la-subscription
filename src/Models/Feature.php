@@ -5,6 +5,9 @@ namespace Aldeebhasan\LaSubscription\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property ?Group $group
+ */
 class Feature extends LaModel
 {
     protected $fillable = ['name', 'code', 'description', 'group_id', 'active', 'limited'];

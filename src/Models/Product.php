@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 
 /**
  * @property Collection<Feature> $features
+ * @property ?Group $group
  */
 class Product extends LaModel implements ContractUI
 {

@@ -2,28 +2,20 @@
 
 namespace Aldeebhasan\LaSubscription\Http\Controllers;
 
-use Aldeebhasan\LaSubscription\Enums\GroupTypeEnum;
-use Aldeebhasan\LaSubscription\Http\Requests\PlanForm;
-use Aldeebhasan\LaSubscription\Http\Resources\PlanResource;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Product;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Symfony\Component\HttpFoundation\Response;
 
-class PlanController extends ProductController
+class ProductController extends LaController
 {
-    protected string $model = Product::class;
-    protected ?string $modelResource = PlanResource::class;
-    protected ?string $modelRequestForm = PlanForm::class;
-
-    public function baseQuery(Builder $query): Builder
+    protected function showQuery(Builder $query): Builder
     {
-        return $query->where(function (Builder $q1) {
-            $q1->whereHas('group', fn($q2) => $q2->where('type', GroupTypeEnum::PLAN))
-                ->orWhereNull('group_id');
-        })->orderByDesc('created_at');
+        return $query->with('features');
     }
 
     public function edit(Request $request, string|int $id): Response|Responsable
@@ -67,5 +59,26 @@ class PlanController extends ProductController
             'item' => null,
             'features' => $features,
         ]);
+    }
+
+    public function afterStoreHook(Request $request, Model $model): void
+    {
+        $features = Arr::wrap($request->features);
+        $data = [];
+        foreach ($features as $id => $pivot) {
+            if ($pivot && $pivot['active']) {
+                $data[$id] = [
+                    'active' => true,
+                    'value' => (int)($pivot['value'] ?? 0),
+                ];
+            }
+        }
+        /* @phpstan-ignore-next-line  */
+        $model->features()->sync($data);
+    }
+
+    public function afterUpdateHook(Request $request, Model $model): void
+    {
+        $this->afterStoreHook($request, $model);
     }
 }

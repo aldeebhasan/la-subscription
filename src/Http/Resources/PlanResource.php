@@ -33,6 +33,12 @@ class PlanResource extends BaseResource
             'active' => $this->active ? 1 : 0,
             'price' => "$this->price",
             'price_yearly' => "$this->price_yearly",
+            'features' => $this->features->mapWithKeys(fn($feature) => [
+                $feature->id => [
+                    'value' => $feature->pivot->value,
+                    'active' => $feature->pivot->active ? 1 : 0,
+                ],
+            ]),
         ];
     }
 }

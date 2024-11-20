@@ -8,6 +8,7 @@ import SelectInput from "@/components/SelectInput.vue";
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Loader from "@/components/Loader.vue";
 import TextareaInput from "@/components/TextareaInput.vue";
+import ProductFeature from "@/components/ProductFeature.vue";
 
 const app = getCurrentInstance()
 const router = useRouter()
@@ -23,6 +24,7 @@ const form = reactive({
     active: 0,
     price: "",
     price_yearly: "",
+    features: {},
   },
   errors: {}
 });
@@ -94,9 +96,15 @@ function submit() {
         </select-input>
 
       </div>
+
+      <div class="px-8">
+        <product-feature :features="features" :form="form" @update="form.data.features = $event"/>
+      </div>
+
       <div class="flex items-center justify-end px-8 py-4 bg-gray-50 border-t border-gray-100">
         <loading-button :loading="loading" class="btn-indigo" type="submit">{{ id !== "create" ? "Edit" : "Create" }}</loading-button>
       </div>
+
     </form>
   </div>
 </template>
