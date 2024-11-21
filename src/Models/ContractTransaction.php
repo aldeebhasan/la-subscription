@@ -3,12 +3,13 @@
 namespace Aldeebhasan\LaSubscription\Models;
 
 use Aldeebhasan\LaSubscription\Enums\TransactionTypeEnum;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * @property string $start_at
- * @property string $end_at
+ * @property Carbon $start_at
+ * @property ?Carbon $end_at
  */
 class ContractTransaction extends LaModel
 {

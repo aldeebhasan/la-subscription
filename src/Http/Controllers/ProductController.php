@@ -2,6 +2,7 @@
 
 namespace Aldeebhasan\LaSubscription\Http\Controllers;
 
+use Aldeebhasan\LaSubscription\Http\Filters\SearchFilter;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Product;
 use Illuminate\Contracts\Support\Responsable;
@@ -13,6 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends LaController
 {
+    /** @var string[] */
+    protected array $filters = [
+        SearchFilter::class,
+    ];
+
     protected function showQuery(Builder $query): Builder
     {
         return $query->with('features');
@@ -73,7 +79,7 @@ class ProductController extends LaController
                 ];
             }
         }
-        /* @phpstan-ignore-next-line  */
+        /* @phpstan-ignore-next-line */
         $model->features()->sync($data);
     }
 

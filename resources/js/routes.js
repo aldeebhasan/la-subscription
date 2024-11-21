@@ -9,6 +9,7 @@ import plugins from "./pages/plugins/index.vue";
 import featureCreate from "./pages/features/create.vue";
 import features from "./pages/features/index.vue";
 import subscriptions from "./pages/subscriptions/index.vue";
+import subscriptionShow from "./pages/subscriptions/show.vue";
 
 window.Global.basePath = '/' + window.Global.path;
 
@@ -20,9 +21,10 @@ if (window.Global.path === '' || window.Global.path === '/') {
 }
 
 const router = createRouter({
-    history: createWebHistory(routerBasePath), routes: [{path: '/', redirect: '/dashboard'},
-
+    history: createWebHistory(routerBasePath), routes: [
         {
+            path: '/', redirect: '/dashboard'
+        }, {
             path: '/dashboard', name: 'Dashboard', component: dashboard
         }, {
             path: '/groups', name: 'Groups', component: groups
@@ -42,7 +44,10 @@ const router = createRouter({
             path: '/features/:id', name: 'Create Feature', component: featureCreate
         }, {
             path: '/subscriptions', name: 'Subscriptions', component: subscriptions,
-        },]
+        }, {
+            path: '/subscriptions/:id', name: 'Subscription Detail', component: subscriptionShow,
+        },
+    ]
 })
 
 router.beforeEach((to, from, next) => {

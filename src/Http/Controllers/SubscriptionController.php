@@ -17,6 +17,11 @@ class SubscriptionController extends LaController
     protected string $model = Subscription::class;
     protected ?string $modelResource = SubscriptionResource::class;
 
+    protected function showQuery(Builder $query): Builder
+    {
+        return $query->with(['plan', 'contracts', 'contracts.product', 'contracts.transactions', 'contracts.transactions.causative']);
+    }
+
     public function statistics(Request $request): Response
     {
         $plans = Product::where(function (Builder $q1) {

@@ -66,4 +66,9 @@ class Product extends LaModel implements ContractUI
 
         return $this->features;
     }
+
+    public function scopeSearch(Builder $query, string $keyword): Builder
+    {
+        return $query->where('name', "like", "%$keyword%");
+    }
 }

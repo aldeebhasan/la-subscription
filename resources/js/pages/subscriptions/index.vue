@@ -29,16 +29,14 @@ function load(link = "") {
     <input type="text" class="form-input flex-grow border-0" placeholder="Search Here ..."/>
   </div>
 
-  <v-table :loading="loading" :count="data.items?.length">
+  <v-table :loading="loading" :count="0">
     <thead>
     <tr>
       <th scope="col">#</th>
       <th scope="col">Plan</th>
       <th scope="col">Start At</th>
       <th scope="col">End At</th>
-      <th scope="col">Suppressed At</th>
-      <th scope="col">Canceled At</th>
-      <th scope="col">Unlimited</th>
+      <th scope="col">Status</th>
       <th scope="col">Actions</th>
     </tr>
     </thead>
@@ -47,9 +45,7 @@ function load(link = "") {
       <td>{{ item.plan }}</td>
       <td>{{ item.start_at }}</td>
       <td>{{ item.end_at }}</td>
-      <td>{{ item.suppressed_at }}</td>
-      <td>{{ item.canceled_at }}</td>
-      <td>{{ item.unlimited }}</td>
+      <td>{{ item.status }}</td>
       <td><a class="action" :href="'subscriptions/'+item.id"> View</a></td>
     </tr>
   </v-table>

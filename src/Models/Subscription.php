@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -40,6 +41,11 @@ class Subscription extends LaModel
     public function contracts(): HasMany
     {
         return $this->hasMany(SubscriptionContract::class);
+    }
+
+    public function transactions(): HasManyThrough
+    {
+        return $this->hasManyThrough(ContractTransaction::class, SubscriptionContract::class);
     }
 
     public function plan(): BelongsTo
@@ -98,5 +104,20 @@ class Subscription extends LaModel
     public function getBillingPeriod(): int
     {
         return $this->billing_period ?? 1;
+    }
+
+    public function getStatus(): string
+    {
+        if ($this->isUnlimited()) {
+            return 'Unlimited';
+        } elseif ($this->isActive()) {
+            return 'Active';
+        } elseif ($this->isCanceled()) {
+            return 'Canceled';
+        } elseif ($this->isSuppressed()) {
+            return 'Suppressed';
+        } else {
+            return 'Expired';
+        }
     }
 }

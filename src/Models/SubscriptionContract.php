@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Collection;
 
 /**
+ * @property Collection<ContractTransaction> $transactions
  * @property Carbon $start_at
  * @property ?Carbon $end_at
  * @property Product $product

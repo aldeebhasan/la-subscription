@@ -8,12 +8,13 @@ import Icon from "@/components/Icon.vue";
 
 const data = ref({});
 const loading = ref(true);
+const keyword = defineModel("");
 
 onMounted(() => load())
 
 function load(link = "") {
   loading.value = true;
-  globals.$http.get(link ? link : Global.basePath + "/api/plans")
+  globals.$http.get(link ? link : Global.basePath + "/api/plans", {params: {filters: {q: keyword.value}}})
     .then(response => {
       response = response.data;
       data.value = response.data;
@@ -26,7 +27,7 @@ function load(link = "") {
   <breadcrumb title="Plans"/>
 
   <div class="flex p-2 mt-2">
-    <input type="text" class="form-input flex-grow border-0" placeholder="Search Here ..."/>
+    <input v-model="keyword" @keyup.enter.native="load()" type="text" class="form-input flex-grow border-0" placeholder="Search Here ..."/>
     <router-link to="/plans/create" type="text" class="border-2 border-gray-200 hover:border-black px-2 py-1 rounded-r-md  transition duration-200 leading-8">
       Create
     </router-link>
