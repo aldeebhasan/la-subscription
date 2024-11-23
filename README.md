@@ -1,4 +1,4 @@
-<div style="text-align: center;">
+<div align="center">
 <h1 >LA SUBSCRIPTION </h1>
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/aldeebhasan/la-subscription.svg?style=flat-square)](https://packagist.org/packages/aldeebhasan/la-subscription)
@@ -13,7 +13,9 @@
 
 LA SUBSCRIPTION is a robust package designed to simplify the implementation and management of subscription-based services within Laravel applications. It provides a flexible approach to handle various
 subscription plans, making it ideal for SaaS applications, membership sites, and any system requiring recurring billing.
-
+<p align="center">
+<img src="/art/screenshot.jpg" />
+</p>
 ## Installation
 
 You can install the package via composer:
@@ -41,6 +43,8 @@ This is the contents of the published config file:
 return [
     'prefix' => env("LA_SUBSCRIPTION_PREFIX", "la"),
     'grace_period' => env("LA_GRACE_PERIOD", 7),
+    'path' => env("LA_PATH", 'la-subscriptions'),
+    'middleware' => ['web'],
 ];
 ```
 
@@ -49,6 +53,11 @@ Optionally, you can publish the views using
 ```bash
 php artisan vendor:publish --tag="la-subscription-views"
 ```
+
+> [!TIP]
+> As soon as you install this package, you can access the package dashboard through the path initialized in the configuration file.
+>
+> By default it is `http://*/la-subscriptions`. If you are working on the local environment, it will be `http://127.0.0.1:8000/la-subscriptions/dashboard`
 
 ## Usage
 
@@ -70,7 +79,7 @@ class User extends Model
 
 The basic unit of any subscription is the features, you can group them under specific groups according to there type.
 
-You can create features as follow:
+You can create features either using the `package dashboard` or `manually` as follow:
 
 ```php
 
@@ -113,7 +122,7 @@ On the other hand, the unlimited feature has unlimited number of usage quota. Th
 ## Setup Plans
 
 Plans work like a group of features that will be available to the subscriber.
-You can define a new plan as follow:
+You can define a new plan either using the `package dashboard` or `manually` as follow:
 
 ```php
 
@@ -240,9 +249,12 @@ Plugins in this package represent a set of figures that can be added to the subs
 As example, the user at the starter plan may want to enable a plugin that give him access to specific features that are not enabled in his plan.
 Plugins can be considered as a small plans with limited set of features.
 
-Plugins can be RECURRING/NON_RECURRING,  
-- The RECURRING  plugin  will follow the same subscription billing cycle, if not renewed, the subscriber will loss the access to its features.
+Plugins can be RECURRING/NON_RECURRING,
+
+- The RECURRING plugin will follow the same subscription billing cycle, if not renewed, the subscriber will loss the access to its features.
 - The NON_RECURRING plugins will be enabled forever, there is no need to renew it at all.
+
+You can define new plugins either using the `package dashboard` or `manually` as follow:
 
 ```php
 $group = Group::create([
