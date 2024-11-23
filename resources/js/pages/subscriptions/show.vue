@@ -124,6 +124,6 @@ function loadItem() {
 
 <style scoped>
 .attr-item {
-  @apply basis-1/4 mb-5
+  @apply basis-2/4 sm:basis-1/4 mb-5
 }
 </style>

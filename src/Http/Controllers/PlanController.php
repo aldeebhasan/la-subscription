@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PlanController extends ProductController
 {
-    protected string $model = Product::class;
     protected ?string $modelResource = PlanResource::class;
     protected ?string $modelRequestForm = PlanForm::class;
 

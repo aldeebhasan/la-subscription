@@ -3,6 +3,7 @@
 namespace Aldeebhasan\LaSubscription\Http\Controllers;
 
 use Aldeebhasan\LaSubscription\Enums\GroupTypeEnum;
+use Aldeebhasan\LaSubscription\Http\Filters\SearchFilter;
 use Aldeebhasan\LaSubscription\Http\Requests\FeatureForm;
 use Aldeebhasan\LaSubscription\Http\Resources\FeatureResource;
 use Aldeebhasan\LaSubscription\Http\Resources\GroupResource;
@@ -18,6 +19,9 @@ class FeatureController extends LaController
     protected string $model = Feature::class;
     protected ?string $modelResource = FeatureResource::class;
     protected ?string $modelRequestForm = FeatureForm::class;
+
+    /** @var string[] */
+    protected array $filters = [SearchFilter::class];
 
     public function baseQuery(Builder $query): Builder
     {

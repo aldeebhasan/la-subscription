@@ -53,7 +53,10 @@
 }
 
 .table td .action {
-    @apply text-xs border-2 border-gray-200 hover:border-black px-2 py-1 rounded-md transition duration-200
+    @apply text-xs border-2 border-gray-200 hover:border-black mr-2 px-2 py-1 rounded-md transition duration-200 cursor-pointer
+}
+.table td .action.delete {
+    @apply  border-red-200 hover:border-red-400 text-red-400 fill-red-400
 }
 
 .form-input:focus, .form-textarea:focus, .form-select:focus, .form-multiselect:focus {

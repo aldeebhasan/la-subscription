@@ -45,7 +45,7 @@ class SubscriptionContract extends LaModel
 
     public function product(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 
     public function isActive(): bool

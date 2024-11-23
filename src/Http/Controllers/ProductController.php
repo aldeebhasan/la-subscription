@@ -14,10 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends LaController
 {
+    protected string $model = Product::class;
+
     /** @var string[] */
-    protected array $filters = [
-        SearchFilter::class,
-    ];
+    protected array $filters = [SearchFilter::class];
 
     protected function showQuery(Builder $query): Builder
     {
@@ -72,7 +72,7 @@ class ProductController extends LaController
         $features = Arr::wrap($request->features);
         $data = [];
         foreach ($features as $id => $pivot) {
-            if ($pivot && $pivot['active']) {
+            if ($pivot && ($pivot['active'] ?? false)) {
                 $data[$id] = [
                     'active' => true,
                     'value' => (int)($pivot['value'] ?? 0),

@@ -17,6 +17,7 @@ class SubscriptionResource extends BaseResource
         return [
             'id' => $this->id,
             'plan' => $this->plan->name ?? "-",
+            'subscriber' => str(class_basename($this->subscriber))->singular() . "({$this->subscriber_id})",
             'start_at' => $this->start_at->toDateTimeString(),
             'end_at' => $this->end_at->toDateTimeString(),
             /* @phpstan-ignore-next-line */

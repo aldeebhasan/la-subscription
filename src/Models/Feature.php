@@ -37,4 +37,9 @@ class Feature extends LaModel
     {
         return $query->where('active', true);
     }
+
+    public function scopeSearch(Builder $query, string $keyword): Builder
+    {
+        return $query->whereAny(['name', 'description'], "like", "%$keyword%");
+    }
 }

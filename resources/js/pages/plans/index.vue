@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {onMounted, ref, defineModel, getCurrentInstance} from "vue";
 import breadcrumb from "@/components/Breadcrumb.vue";
 import {globals} from "@/app.js";
 import VTable from "@/components/VTable.vue";
@@ -21,13 +21,26 @@ function load(link = "") {
       loading.value = false;
     });
 }
+
+const app = getCurrentInstance();
+
+function deleteItem(id) {
+  globals.confirmAlert(app, () => {
+    globals.$http.delete(Global.basePath + "/api/plans/" + id)
+      .then(() => load());
+  })
+}
+
 </script>
 
 <template>
   <breadcrumb title="Plans"/>
 
   <div class="flex p-2 mt-2">
-    <input v-model="keyword" @keyup.enter.native="load()" type="text" class="form-input flex-grow border-0" placeholder="Search Here ..."/>
+    <div class="relative flex-grow ">
+      <input v-model="keyword" @keyup.enter.native="load()" type="text" class="form-input border-0" placeholder="Search Here ..." autofocus/>
+      <icon class="size-8 absolute  top-1 right-1 cursor-pointer hover:fill-gray-400 px-2" @click="load()" name="search"/>
+    </div>
     <router-link to="/plans/create" type="text" class="border-2 border-gray-200 hover:border-black px-2 py-1 rounded-r-md  transition duration-200 leading-8">
       Create
     </router-link>
@@ -49,6 +62,9 @@ function load(link = "") {
       <td>{{ item.price }}</td>
       <td>
         <router-link class="action" :to="'/plans/'+item.id"> Edit</router-link>
+        <a class="action delete " @click="deleteItem(item.id)">
+          <icon name="trash" class="size-3 inline"/>
+        </a>
       </td>
     </tr>
   </v-table>

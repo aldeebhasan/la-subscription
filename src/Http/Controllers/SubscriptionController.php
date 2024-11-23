@@ -3,6 +3,7 @@
 namespace Aldeebhasan\LaSubscription\Http\Controllers;
 
 use Aldeebhasan\LaSubscription\Enums\GroupTypeEnum;
+use Aldeebhasan\LaSubscription\Http\Filters\SearchFilter;
 use Aldeebhasan\LaSubscription\Http\Resources\SubscriptionResource;
 use Aldeebhasan\LaSubscription\Models\Feature;
 use Aldeebhasan\LaSubscription\Models\Product;
@@ -16,6 +17,9 @@ class SubscriptionController extends LaController
 {
     protected string $model = Subscription::class;
     protected ?string $modelResource = SubscriptionResource::class;
+
+    /** @var string[] */
+    protected array $filters = [SearchFilter::class];
 
     protected function showQuery(Builder $query): Builder
     {

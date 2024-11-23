@@ -7,10 +7,13 @@ import base from './base.js';
 import '../css/styles.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import {getCurrentInstance} from "vue";
+import Icon from "@/components/Icon.vue";
 
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['accept'] = 'application/json';
 const app = createApp({});
+app.component("icon", Icon);
+
 app.use(router)
     .use(VueSweetalert2)
     .mixin(base)

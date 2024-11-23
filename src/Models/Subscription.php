@@ -50,7 +50,7 @@ class Subscription extends LaModel
 
     public function plan(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'plan_id');
+        return $this->belongsTo(Product::class, 'plan_id')->withTrashed();
     }
 
     public function quotas(): HasMany
@@ -99,6 +99,15 @@ class Subscription extends LaModel
     {
         /* @phpstan-ignore-next-line */
         return $query->valid()->whereNot(fn(Builder $query) => $query->suppressed()->orWhere->canceled());
+    }
+
+    public function scopeSearch(Builder $query, string $keyword): Builder
+    {
+        return $query->where(function (Builder $query) use ($keyword) {
+            /* @phpstan-ignore-next-line  */
+            $query->whereHas('plan', fn(Builder $query) => $query->search($keyword))
+                ->orWhere('subscriber_id', $keyword);
+        });
     }
 
     public function getBillingPeriod(): int

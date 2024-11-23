@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PluginController extends ProductController
 {
-    protected string $model = Product::class;
     protected ?string $modelResource = PluginResource::class;
     protected ?string $modelRequestForm = PluginForm::class;
 
