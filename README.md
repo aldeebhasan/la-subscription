@@ -16,6 +16,7 @@ subscription plans, making it ideal for SaaS applications, membership sites, and
 <p align="center">
 <img src="/art/screenshot.jpg" />
 </p>
+
 ## Installation
 
 You can install the package via composer:
